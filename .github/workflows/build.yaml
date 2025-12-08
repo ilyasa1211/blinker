@@ -29,9 +29,10 @@ jobs:
 
       - name: Install electron builder dependencies
         run: |
-          sudo apt-get update && \
+          sudo apt-get update
           sudo apt-get install --no-install-recommends -y libopenjp2-tools rpm
-          sudo snap install snapcraft --classic &&
+          sudo snap install snapcraft --classic
+
       - name: Build application
         run: npm run build:linux
       
