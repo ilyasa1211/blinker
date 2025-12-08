@@ -2,6 +2,8 @@ on:
   push:
     tags:
       - "*"
+    branches:
+      - main
 
 env:
   app-name: blinker
@@ -24,6 +26,8 @@ jobs:
         
       - name: Install application dependencies
         run: npm ci
+
+      - name: 
       
       - name: Build application
         run: npm run build:linux
