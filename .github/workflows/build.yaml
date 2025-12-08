@@ -27,7 +27,10 @@ jobs:
       - name: Install application dependencies
         run: npm ci
 
-      - name: 
+      - name: Install electron builder dependencies
+        run: |
+          apt-get update && \
+          apt-get install --no-install-recommends -y libopenjp2-tools rpm
       
       - name: Build application
         run: npm run build:linux
