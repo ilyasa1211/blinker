@@ -34,7 +34,7 @@ jobs:
           sudo snap install snapcraft --classic
 
       - name: Build application
-        run: npm run build:linux
+        run: npm run build:linux -- --publish never
       
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v5.0.0
