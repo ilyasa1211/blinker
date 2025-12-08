@@ -1,0 +1,61 @@
+on:
+  push:
+    tags:
+      - "*"
+
+env:
+  app-name: blinker
+
+jobs:
+  build-linux:
+    runs-on: ubuntu:24.04
+    permissions:
+      id-token: write
+      attestations: write
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6.0.1
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v6.1.0
+        with:
+          node-version: 24
+          cache: npm
+        
+      - name: Install application dependencies
+        run: npm ci
+      
+      - name: Build application
+        run: npm run build:linux
+      
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v5.0.0
+        id: upload-artifact
+        with:
+          name: linux-artifacts
+          path: ./dist/${{ env.app-name }}*
+
+      - name: Attest Build Provenance
+        uses: actions/attest-build-provenance@v3.0.0
+        with:
+          subject-name: linux-artifacts
+          subject-digest: sha256:${{ steps.upload-artifact.outputs.artifact-digest }}
+
+  release:
+    runs-on: ubuntu:24.04
+    needs:
+      - build-linux
+    permissions:
+      contents: write
+    steps:
+      - name: Download a Build Artifact
+        uses: actions/download-artifact@v6.0.0
+        id: download-artifact
+        with:
+          name: linux-artifacts
+
+      - name: GH Release
+        uses: softprops/action-gh-release@v2.5.0
+        if: github.ref_type == 'tag'
+        with:
+          files: ${{ steps.download-artifact.outputs.download-path }}/*
