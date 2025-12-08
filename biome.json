@@ -3,7 +3,7 @@
 	"vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
 	"files": {
 		"ignoreUnknown": false,
-		"includes": ["!**/task-vision"]
+		"includes": ["src/**", "!**/public", "!**/assets"]
 	},
 	"formatter": { "enabled": true, "indentStyle": "tab" },
 	"linter": {
