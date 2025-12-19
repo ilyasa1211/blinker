@@ -24,7 +24,7 @@ jobs:
         run: npm ci
 
       - name: Build application
-        run: 
+        run: |
           npm run typecheck:node 
           npx electron-vite build
           npx electron-builder --win --publish=never
