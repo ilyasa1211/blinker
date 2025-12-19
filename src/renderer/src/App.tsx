@@ -3,7 +3,7 @@ import { Camera } from "./Camera";
 
 // When using the Tauri API npm package:
 
-const MAX_THRESHOLD_BEFORE_CLOSE = 0.35; // eyes closed
+const MAX_THRESHOLD_BEFORE_CLOSE = 0.25; // eyes closed
 const MIN_THRESHOLD_BEFORE_OPEN = 0.2; // eyes open
 const TIMEOUT_SINCE_LAST_BLINK_MS = 0.5 * 1000; // 0.5 seconds
 

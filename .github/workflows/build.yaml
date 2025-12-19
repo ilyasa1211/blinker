@@ -11,8 +11,6 @@ jobs:
     runs-on: ubuntu-24.04
     container:
       image: docker.io/electronuserland/builder:wine
-      env:
-        HOME: ${{ github.workspace }}
     permissions:
       id-token: write
       attestations: write
@@ -25,6 +23,8 @@ jobs:
 
       - name: Build application
         run: |
+          export HOME=${{ github.workspace }}
+
           npm run typecheck:node 
           npx electron-vite build
           npx electron-builder --win --publish=never
