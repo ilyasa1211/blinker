@@ -3,9 +3,21 @@ import { defineConfig } from 'electron-vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
-  main: {},
-  preload: {},
+  main: {
+    server: {
+      host: "0.0.0.0"
+    },
+  },
+  preload: {
+
+    server: {
+      host: "0.0.0.0"
+    },
+  },
   renderer: {
+    server: {
+      host: "0.0.0.0"
+    },
     build: {
       rollupOptions: {
         input: {

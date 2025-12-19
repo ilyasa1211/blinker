@@ -4,9 +4,14 @@
 
 Too focused doing your job and forget to blink? that's bad for your eyes, fortunately this application just do the right thing for you.
 
+
+## Developer Note
+
+Devcontainer doesn't work if you want to develop inside a container
+
 ## Recommended IDE Setup
 
-- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+- [VSCode](https://code.visualstudio.com/)
 
 ## Project Setup
 
