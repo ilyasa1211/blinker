@@ -11,10 +11,8 @@ jobs:
     runs-on: ubuntu-24.04
     container:
       image: docker.io/electronuserland/builder:wine
-      # volumes:
-      #   - /home/runner/project:/project
-      #   - /home/runner/.cache/electron:/root/.cache/electron
-      #   - /home/runner/.cache/electron-builder:/root/.cache/electron-builder
+      env:
+        HOME: ${{ github.workspace }}
     permissions:
       id-token: write
       attestations: write
@@ -26,7 +24,7 @@ jobs:
         run: npm ci
 
       - name: Build application
-        run: |
+        run: 
           npm run typecheck:node 
           npx electron-vite build
           npx electron-builder --win --publish=never
