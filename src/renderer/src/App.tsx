@@ -3,7 +3,7 @@ import { Camera } from "./Camera";
 
 // When using the Tauri API npm package:
 
-const THRESHOLD_EYES_CLOSE = 0.25; // eyes open
+const THRESHOLD_EYES_CLOSE = 0.5; // eyes open
 const TIMEOUT_SINCE_LAST_BLINK_MS = 0.5 * 1000; // 0.5 seconds
 
 function showOverlay() {
