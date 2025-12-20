@@ -1,10 +1,9 @@
-import { useCallback, useRef, useState } from "react";
+import { ChangeEvent, useCallback, useRef, useState } from "react";
 import { Camera } from "./Camera";
 
 // When using the Tauri API npm package:
 
-const THRESHOLD_EYES_CLOSE = 0.5; // eyes open
-const TIMEOUT_SINCE_LAST_BLINK_MS = 0.5 * 1000; // 0.5 seconds
+const THRESHOLD_EYES_CLOSE = 0.3; // eyes open
 
 function showOverlay() {
   window.api?.showOverlay();
@@ -19,15 +18,23 @@ function App() {
   const [blinkCount, setBlinkCount] = useState<number>(0);
   const isEyesCloseRef = useRef<boolean>(false);
   const [isActive, setIsActive] = useState<boolean>(false);
+  const [timeoutSinceLastBlinkSecond, setTimeoutSinceLastBlinkSecond] =
+    useState<number>(0.5); // 0.5 seconds
 
   const removeTimeout = useCallback(() => {
     clearTimeout(timeoutIdRef.current);
   }, []);
 
-  const resetTimeout = useCallback((callback: () => void) => {
-    clearTimeout(timeoutIdRef.current);
-    timeoutIdRef.current = setTimeout(callback, TIMEOUT_SINCE_LAST_BLINK_MS);
-  }, []);
+  const resetTimeout = useCallback(
+    (callback: () => void) => {
+      clearTimeout(timeoutIdRef.current);
+      timeoutIdRef.current = setTimeout(
+        callback,
+        timeoutSinceLastBlinkSecond * 1000,
+      );
+    },
+    [timeoutSinceLastBlinkSecond],
+  );
 
   const incrementBlinkCounter = useCallback(() => {
     setBlinkCount((prev) => prev + 1);
@@ -66,6 +73,10 @@ function App() {
     setIsActive(!isActive);
   };
 
+  const handleTimeoutChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setTimeoutSinceLastBlinkSecond(Number(e.target.value));
+  };
+
   return (
     <main>
       <Camera
@@ -93,7 +104,7 @@ function App() {
           id="activate_checkbox"
           checked={isActive}
           style={{
-            padding: "0.5rem",
+            padding: "1rem",
           }}
         />
         <label
@@ -104,6 +115,31 @@ function App() {
           }}
         >
           Active
+        </label>
+      </div>
+      <div>
+        <input
+          style={{
+            padding: "1rem",
+            fontSize: "1.5rem",
+          }}
+          type="number"
+          name="timeout"
+          id="timeout_since_last_blink"
+          min={0.2}
+          max={2}
+          step={0.1}
+          value={timeoutSinceLastBlinkSecond}
+          onChange={handleTimeoutChange}
+        />
+        <label
+          htmlFor="timeout_since_last_blink"
+          style={{
+            padding: "1rem",
+            fontSize: "1.5rem",
+          }}
+        >
+          Blink Timeout (Second)
         </label>
       </div>
     </main>
