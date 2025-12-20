@@ -99,8 +99,7 @@ function detectFrame(
   video: HTMLVideoElement,
   canvas: HTMLCanvasElement,
   faceLandmarker: FaceLandmarker,
-  minThresholdBeforeEyesOpen: number,
-  maxThresholdBeforeEyesClose: number,
+  thresholdEyesClose: number,
   onEyesClose: () => void,
   onEyesOpen: () => void,
 ): void {
@@ -127,12 +126,12 @@ function detectFrame(
     );
 
   // is eye's closing
-  if (blinkEyes?.every((eye) => eye.score > maxThresholdBeforeEyesClose)) {
+  if (blinkEyes?.every((blinkEye) => blinkEye.score >= thresholdEyesClose)) {
     onEyesClose();
   }
 
   // is eye's opening
-  if (blinkEyes?.every((eye) => eye.score < minThresholdBeforeEyesOpen)) {
+  if (blinkEyes?.every((blinkEye) => blinkEye.score < thresholdEyesClose)) {
     onEyesOpen();
   }
 }
@@ -140,13 +139,13 @@ function detectFrame(
 export function Camera({
   onEyesClose,
   onEyesOpen,
-  maxThresholdBeforeEyesClose,
-  minThresholdBeforeEyesOpen,
+  thresholdEyesClose,
+  style = {},
 }: {
   onEyesOpen: () => void;
   onEyesClose: () => void;
-  maxThresholdBeforeEyesClose: number;
-  minThresholdBeforeEyesOpen: number;
+  thresholdEyesClose: number;
+  style?: React.CSSProperties;
 }): JSX.Element {
   const [faceLandmarker, setFaceLandmarker] = useState<FaceLandmarker | null>(
     null,
@@ -182,8 +181,7 @@ export function Camera({
           video,
           canvas,
           faceLandmarker,
-          minThresholdBeforeEyesOpen,
-          maxThresholdBeforeEyesClose,
+          thresholdEyesClose,
           onEyesClose,
           onEyesOpen,
         );
@@ -206,13 +204,7 @@ export function Camera({
         cancelAnimationFrame(rafId);
       }
     };
-  }, [
-    faceLandmarker,
-    minThresholdBeforeEyesOpen,
-    maxThresholdBeforeEyesClose,
-    onEyesClose,
-    onEyesOpen,
-  ]);
+  }, [faceLandmarker, thresholdEyesClose, onEyesClose, onEyesOpen]);
 
   useEffect(() => {
     loadModel().then((m) => setFaceLandmarker(m));
@@ -223,6 +215,7 @@ export function Camera({
       className="container"
       style={{
         position: "relative",
+        ...style,
       }}
     >
       <video

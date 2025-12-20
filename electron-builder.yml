@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: electron-app
+appId: com.blinker.app
+productName: Blinker
 directories:
   buildResources: build
 files:
@@ -12,12 +12,12 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: electron-app
+  executableName: ${productName}
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
-  createDesktopShortcut: always
+  # createDesktopShortcut: always
 mac:
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:

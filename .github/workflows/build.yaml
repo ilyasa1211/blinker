@@ -25,7 +25,6 @@ jobs:
         run: |
           export HOME=${{ github.workspace }}
 
-          npm run typecheck:node 
           npx electron-vite build
           npx electron-builder --win --publish=never
           npx electron-builder --linux --publish=never

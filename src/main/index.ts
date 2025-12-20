@@ -3,39 +3,11 @@ import { app, BrowserWindow, ipcMain, shell } from "electron";
 import { join } from "path";
 import icon from "../../resources/icon.png?asset";
 
-let overlayWindow: BrowserWindow | null = null;
-
-export function createOverlay(): void {
-  if (overlayWindow) return; // prevent duplicates
-
-  overlayWindow = new BrowserWindow({
-    fullscreen: true,
-    frame: false,
-    alwaysOnTop: true,
-    show: false,
-    skipTaskbar: true,
-    resizable: false,
-    transparent: false, // set true if you want transparent overlay
-  });
-
-  overlayWindow.on("closed", () => {
-    overlayWindow = null;
-  });
-}
-
-export function showOverlay(): void {
-  if (overlayWindow) {
-    overlayWindow.show();
-  }
-}
-
-export function hideOverlay(): void {
-  if (overlayWindow) {
-    overlayWindow.hide();
-  }
-}
-
-function createWindow(): void {
+function createWindow({
+  onClose = () => void 0,
+}: {
+  onClose?: () => void;
+} = {}): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 900,
@@ -52,6 +24,7 @@ function createWindow(): void {
   mainWindow.on("ready-to-show", () => {
     mainWindow.show();
   });
+  mainWindow.on("close", onClose);
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
@@ -62,13 +35,46 @@ function createWindow(): void {
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
     mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
+  } else {
+    mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
+  }
+}
+
+function createOverlay() {
+  const overlayWindow = new BrowserWindow({
+    fullscreen: true,
+    frame: false,
+    alwaysOnTop: true,
+    show: false,
+    skipTaskbar: true,
+    resizable: false,
+    transparent: false, // set true if you want transparent overlay
+  });
+
+  overlayWindow.on("ready-to-show", () => {
+    overlayWindow.hide();
+  });
+
+  overlayWindow.webContents.setWindowOpenHandler((details) => {
+    shell.openExternal(details.url);
+    return { action: "deny" };
+  });
+
+  // HMR for renderer base on electron-vite cli.
+  // Load the remote URL for development or the local html file for production.
+  if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
     overlayWindow?.loadURL(
       `${process.env["ELECTRON_RENDERER_URL"]}/overlay.html`,
     );
   } else {
-    mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
     overlayWindow?.loadFile(join(__dirname, "../renderer/overlay.html"));
   }
+
+  return {
+    hide: () => overlayWindow.hide(),
+    show: () => overlayWindow.show(),
+    exit: () => overlayWindow.close(),
+  };
 }
 
 // This method will be called when Electron has finished
@@ -76,7 +82,7 @@ function createWindow(): void {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId("com.electron");
+  electronApp.setAppUserModelId("com.blinker");
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -85,14 +91,13 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window);
   });
 
+  const { hide, show, exit } = createOverlay();
+  createWindow({ onClose: exit });
+
   // IPC test
   ipcMain.on("ping", () => console.log("pong"));
-  ipcMain.on("hide-overlay", hideOverlay);
-  ipcMain.on("show-overlay", showOverlay);
-
-  createOverlay();
-  hideOverlay();
-  createWindow();
+  ipcMain.on("hide-overlay", hide);
+  ipcMain.on("show-overlay", show);
 
   app.on("activate", function () {
     // On macOS it's common to re-create a window in the app when the
