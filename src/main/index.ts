@@ -44,7 +44,7 @@ function createOverlay() {
   const overlayWindow = new BrowserWindow({
     fullscreen: true,
     frame: false,
-    alwaysOnTop: true,
+    // alwaysOnTop: true,
     show: false,
     skipTaskbar: true,
     resizable: false,
@@ -71,9 +71,9 @@ function createOverlay() {
   }
 
   return {
-    hide: () => overlayWindow.hide(),
-    show: () => overlayWindow.show(),
-    exit: () => overlayWindow.close(),
+    hide: () => overlayWindow?.hide(),
+    show: () => overlayWindow?.show(),
+    exit: () => overlayWindow?.close(),
   };
 }
 

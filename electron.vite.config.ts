@@ -1,7 +1,6 @@
 import { resolve } from 'path'
 import { defineConfig } from 'electron-vite'
-import react from '@vitejs/plugin-react'
-
+import vue from '@vitejs/plugin-vue'
 
 
 export default defineConfig({
@@ -11,7 +10,6 @@ export default defineConfig({
     },
   },
   preload: {
-
     server: {
       host: "0.0.0.0"
     },
@@ -33,6 +31,6 @@ export default defineConfig({
         '@renderer': resolve('src/renderer/src')
       }
     },
-    plugins: [react()]
+    plugins: [vue()]
   }
 })

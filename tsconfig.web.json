@@ -3,13 +3,11 @@
   "include": [
     "src/renderer/src/env.d.ts",
     "src/renderer/src/**/*",
-    "src/renderer/src/**/*.tsx",
+    "src/renderer/src/**/*.vue",
     "src/preload/*.d.ts"
   ],
   "compilerOptions": {
     "composite": true,
-    "jsx": "react-jsx",
-    "module": "es2022",
     "baseUrl": ".",
     "paths": {
       "@renderer/*": [
