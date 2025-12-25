@@ -32,40 +32,40 @@ const resetTimeout = (callback: () => void) => {
 }
 
 const incrementBlinkCounter = () => {
-  blinkCount.value = blinkCount.value++
+  blinkCount.value++;
 }
 
 const handleEyesClose = () => {
-  if (isEyesCloseRef.value == false) {
+  if (!isEyesCloseRef.value) {
     isEyesCloseRef.value = true;
     incrementBlinkCounter();
   }
 
-  if (!isActive) return;
+  if (!isActive.value) return;
 
   hideOverlay();
   removeTimeout();
 }
 
 const handleEyesOpen = () => {
-  if (isEyesCloseRef.value == true) {
+  if (isEyesCloseRef.value) {
     isEyesCloseRef.value = false;
 
-    if (!isActive) return;
+    if (!isActive.value) return;
 
     resetTimeout(showOverlay);
   }
 }
 
 const handleActivation = () => {
-  if (isActive) {
+  if (isActive.value) {
     hideOverlay();
     removeTimeout();
   } else {
     resetTimeout(showOverlay);
   }
 
-  isActive.value = !isActive;
+  isActive.value = !isActive.value;
 };
 
 const handleTimeoutChange = (e: Event) => {

@@ -1,5 +1,5 @@
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
-import { app, BrowserWindow, ipcMain, shell } from "electron";
+import { app, BrowserWindow, globalShortcut, ipcMain, shell } from "electron";
 import { join } from "path";
 import icon from "../../resources/icon.png?asset";
 
@@ -51,6 +51,8 @@ function createOverlay() {
     transparent: false, // set true if you want transparent overlay
   });
 
+  overlayWindow.setIgnoreMouseEvents(true)
+
   overlayWindow.on("ready-to-show", () => {
     overlayWindow.hide();
   });
@@ -83,6 +85,9 @@ function createOverlay() {
 app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId("com.blinker");
+  globalShortcut.register("CommandOrControl+W", () => {
+        //stuff here
+    });
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.

@@ -80,7 +80,6 @@ onMounted(async () => {
 
   const update = () => {
     (()  => {
-      console.log("SDFSDFs")
       resizeCanvas(canvas, video.videoWidth, video.videoHeight);
 
       if (typeof faceLandmarker === "undefined") return;
