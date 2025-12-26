@@ -1,5 +1,5 @@
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
-import { app, BrowserWindow, globalShortcut, ipcMain, shell } from "electron";
+import { app, BrowserWindow, ipcMain, shell } from "electron";
 import { join } from "path";
 import icon from "../../resources/icon.png?asset";
 
@@ -18,6 +18,7 @@ function createWindow({
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
       sandbox: false,
+      backgroundThrottling: false,
     },
   });
 
