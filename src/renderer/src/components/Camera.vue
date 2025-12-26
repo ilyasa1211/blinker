@@ -1,127 +1,113 @@
 <script setup lang="ts">
 import { FaceLandmarker } from "@mediapipe/tasks-vision";
-import { CSSProperties, onMounted, onUnmounted, ref } from "vue";
-import { drawLandmark, getLandmarker } from "../common/landmark.js";
+import { onMounted, onUnmounted, ref } from "vue";
+import { drawLandmark, setupLandmarker } from "../common/landmark.js";
 import { resizeCanvas } from "../common/util.js";
 
 interface Props {
   onEyesOpen: () => void;
   onEyesClose: () => void;
   thresholdEyesClose: number;
-  style: CSSProperties
 }
 
 const props = defineProps<Props>();
 
-const { onEyesClose, onEyesOpen, thresholdEyesClose, style = {} } = props;
+const { onEyesClose, onEyesOpen, thresholdEyesClose } = props;
 
-const videoRef = ref<HTMLVideoElement>();
-const canvasRef = ref<HTMLCanvasElement>();
+const videoElement = ref<HTMLVideoElement>();
+const canvasElement = ref<HTMLCanvasElement>();
 
-let rafId: number | undefined = undefined;
+let requestAnimationFrameId: number | undefined = undefined;
+let faceLandmarker: FaceLandmarker | undefined = undefined;
+let lastVideoTime = -1;
 
-function detectFrame(
-  video: HTMLVideoElement,
-  canvas: HTMLCanvasElement,
-  faceLandmarker: FaceLandmarker,
-  thresholdEyesClose: number,
-  onEyesClose: () => void,
-  onEyesOpen: () => void,
-): void {
-  const canvasRenderingContext = canvas.getContext("2d");
+const predictWebcam = (
+) => {
+  const canvas = canvasElement.value;
+  const ctx = canvas?.getContext("2d");
 
-  if (canvasRenderingContext == null) {
-    return;
-  }
+  (() => {
+    if (!canvas || !ctx || !faceLandmarker || !videoElement.value || lastVideoTime === videoElement.value.currentTime) return;
+    resizeCanvas(canvas, videoElement.value.videoWidth, videoElement.value.videoHeight);
 
-  // faceLandmarker.setOptions({
-  //   runningMode: "VIDEO"
-  // });
-
-  const faceLandmarkerResult = faceLandmarker.detectForVideo(
-    video,
-    performance.now(),
-  );
-
-  canvasRenderingContext.clearRect(0, 0, canvas.width, canvas.height);
-  drawLandmark(faceLandmarkerResult, canvasRenderingContext);
-
-  const blinkEyes = faceLandmarkerResult.faceBlendshapes
-    .at(0)
-    ?.categories.filter(
-      (cat) =>
-        cat.categoryName === "eyeBlinkLeft" ||
-        cat.categoryName === "eyeBlinkRight",
+    lastVideoTime = videoElement.value.currentTime;
+    const results = faceLandmarker.detectForVideo(
+      videoElement.value,
+      performance.now(),
     );
 
-  // is eye's closing
-  if (blinkEyes?.every((blinkEye) => blinkEye.score >= thresholdEyesClose)) {
-    onEyesClose();
-  }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // is eye's opening
-  if (blinkEyes?.every((blinkEye) => blinkEye.score < thresholdEyesClose)) {
-    onEyesOpen();
-  }
+    if (results) {
+      drawLandmark(results, ctx);
+    }
+
+    if (results.faceBlendshapes && results.faceBlendshapes.length > 0) {
+      const blinkEyes = results.faceBlendshapes
+        .at(0)
+        ?.categories.filter(
+          (cat) =>
+            cat.categoryName === "eyeBlinkLeft" ||
+            cat.categoryName === "eyeBlinkRight",
+        );
+
+      // is eye's closing
+      if (blinkEyes?.every((blinkEye) => blinkEye.score >= thresholdEyesClose)) {
+        onEyesClose();
+      }
+
+      // is eye's opening
+      if (blinkEyes?.every((blinkEye) => blinkEye.score < thresholdEyesClose)) {
+        onEyesOpen();
+      }
+
+    }
+  })()
+
+  requestAnimationFrameId = requestAnimationFrame(predictWebcam);
 }
 
-let handleLoadedMetadata: () => void;
-let faceLandmarker: FaceLandmarker | undefined = undefined;
+// 2. Start Camera
+const startCamera = async () => {
+  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  if (!videoElement.value) throw new Error("video element is undefined");
+
+  videoElement.value.srcObject = stream;
+  videoElement.value.addEventListener("loadeddata", predictWebcam);
+  // active.value = true;
+};
 
 onMounted(async () => {
-  const video = videoRef.value;
-  const canvas = canvasRef.value;
+  const video = videoElement.value;
+  const canvas = canvasElement.value;
 
   if (!video || !canvas) {
     throw new Error("canvas or video element was not found");
   }
 
-  faceLandmarker = await getLandmarker();
+  faceLandmarker = await setupLandmarker();
+  await startCamera();
 
-  const update = () => {
-    (()  => {
-      resizeCanvas(canvas, video.videoWidth, video.videoHeight);
-
-      if (typeof faceLandmarker === "undefined") return;
-
-      detectFrame(
-        video,
-        canvas,
-        faceLandmarker,
-        thresholdEyesClose,
-        onEyesClose,
-        onEyesOpen,
-      );
-    })()
-
-    rafId = requestAnimationFrame(update);
-  }
-
-  handleLoadedMetadata = () => update();
-
-  navigator.mediaDevices
-    .getUserMedia({ video: true })
-    .then((mediaStream) => (video.srcObject = mediaStream));
-
-  video?.addEventListener("loadedmetadata", handleLoadedMetadata);
+  video?.addEventListener("loadeddata", predictWebcam);
 });
 
 onUnmounted(() => {
-  const video = videoRef.value;
+  const video = videoElement.value;
 
-  video?.removeEventListener("loadedmetadata", handleLoadedMetadata);
+  video?.removeEventListener("loadeddata", predictWebcam);
   faceLandmarker?.close()
 
-  if (typeof rafId !== "undefined") {
-    cancelAnimationFrame(rafId);
+  if (typeof requestAnimationFrameId !== "undefined") {
+    cancelAnimationFrame(requestAnimationFrameId);
   }
 })
 
 </script>
 
 <template>
-  <div className="container" :style='{ position: "relative", ...style, }'>
-    <video ref="videoRef" autoPlay :style='{ display: "block", visibility: "hidden" }' />
-    <canvas ref="canvasRef" :style='{ position: "absolute", top: "0px", left: "0px", }'></canvas>
-  </div>
+  <video ref="videoElement" class="absolute inset-0 w-full h-full object-cover" autoplay muted playsinline>
+  </video>
+
+  <canvas ref="canvasElement" class="absolute inset-0 w-full h-full object-cover z-10">
+  </canvas>
 </template>

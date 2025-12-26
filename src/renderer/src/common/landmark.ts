@@ -8,7 +8,7 @@ import task from "/task-vision/face_landmarker.task?url";
 
 let landmarker: FaceLandmarker | undefined = undefined;
 
-export async function getLandmarker() {
+export async function setupLandmarker() {
   if (typeof landmarker !== "undefined") return landmarker;
 
   const resolver = await FilesetResolver.forVisionTasks(
