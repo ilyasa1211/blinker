@@ -105,9 +105,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <video ref="videoElement" class="absolute inset-0 w-full h-full object-cover" autoplay muted playsinline>
+  <video ref="videoElement" class="absolute inset-0 w-full h-full object-cover invisible" autoplay muted playsinline>
   </video>
 
-  <canvas ref="canvasElement" class="absolute inset-0 w-full h-full object-cover z-10">
+  <canvas ref="canvasElement" class="absolute inset-0 w-full h-full object-cover z-10 bg-slate-800">
   </canvas>
 </template>
