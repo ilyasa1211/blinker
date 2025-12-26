@@ -16,23 +16,48 @@ function showOverlay() {
 function hideOverlay() {
   window.api?.hideOverlay();
 }
+
+interface Breakpoint {
+  /**
+   * Repeat every x (minute/second).
+   */
+  interval: number;
+  intervalUnit: "second" | "minute";
+
+  /**
+   * How long this break will last (minute/second).
+   */
+  duration: number;
+  durationUnit: "second" | "minute";
+}
 // State
 const THRESHOLD_EYES_CLOSE = 0.3;
 const active = ref(false);
 const blinkCount = ref(0);
 const blinkTimeout = ref(0.5);
-const breakpoints = ref([
-  { interval: 60, duration: 5 }
+const breakpoints = ref<Breakpoint[]>([
+  {
+    // 20-20-20 rule
+    interval: 20,
+    intervalUnit: "minute",
+    duration: 20,
+    durationUnit: "second"
+  }
 ]);
 const timeoutId = ref<number | undefined | NodeJS.Timeout>(undefined);
 const isEyesCloseRef = ref<boolean>(false);
 
 // Methods
 const addBreakpoint = () => {
-  breakpoints.value.push({ interval: 0, duration: 0 });
+  breakpoints.value.push({ 
+    interval: 60, 
+    intervalUnit: "minute",
+    duration: 30,
+    durationUnit: "minute"
+  });
 };
 
-const removeBreakpoint = (index) => {
+const removeBreakpoint = (index: number) => {
   breakpoints.value.splice(index, 1);
 };
 
@@ -112,16 +137,17 @@ const handleActivation = () => {
             </div>
           </div> -->
 
-          <Camera v-on:eyes-close="handleEyesClose" v-on:eyes-open="handleEyesOpen" :threshold-eyes-close="THRESHOLD_EYES_CLOSE" />
+          <Camera v-on:eyes-close="handleEyesClose" v-on:eyes-open="handleEyesOpen"
+            :threshold-eyes-close="THRESHOLD_EYES_CLOSE" />
         </div>
 
         <div
           class="bg-slate-800/50 border border-slate-700 p-8 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-6">
           <div class="text-center md:text-left">
             <p class="text-slate-400 text-xs uppercase tracking-[0.2em] font-bold mb-1">Total Blinks Detected</p>
-              <h2 :key="blinkCount" class="text-7xl font-black text-white tabular-nums">
-                {{ blinkCount }}
-              </h2>
+            <h2 :key="blinkCount" class="text-7xl font-black text-white tabular-nums">
+              {{ blinkCount }}
+            </h2>
           </div>
           <button @click="handleActivation"
             :class="active ? 'bg-rose-600 hover:bg-rose-500 shadow-rose-900/20' : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-900/20'"
@@ -137,7 +163,7 @@ const handleActivation = () => {
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-slate-400 mb-2">Blink Timeout (Seconds)</label>
-              <input type="number" step="0.1" v-model="blinkTimeout" 
+              <input type="number" step="0.1" v-model="blinkTimeout"
                 class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none transition" />
             </div>
           </div>
@@ -153,27 +179,43 @@ const handleActivation = () => {
           </div>
 
           <div class="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-            <div v-for="(bp, index) in breakpoints" :key="index" class="flex gap-2 items-center group">
-              <div class="grid grid-cols-2 gap-2 flex-1">
-                <div class="relative">
-                  <input type="number" v-model="bp.interval" placeholder="Int"
-                    class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm focus:border-indigo-500 outline-none" />
-                  <span class="absolute right-2 top-2 text-[10px] text-slate-500">sec</span>
-                </div>
-                <div class="relative">
-                  <input type="number" v-model="bp.duration" placeholder="Dur"
-                    class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm focus:border-indigo-500 outline-none" />
-                  <span class="absolute right-2 top-2 text-[10px] text-slate-500">sec</span>
-                </div>
-              </div>
+            <div v-for="(bp, index) in breakpoints" :key="index"
+              class="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50 space-y-3 group relative">
+
               <button @click="removeBreakpoint(index)"
-                class="p-2 text-slate-500 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                class="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition shadow-lg z-10">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd"
                     d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
                     clip-rule="evenodd" />
                 </svg>
               </button>
+
+              <div>
+                <label class="text-[10px] uppercase tracking-widest text-slate-500 font-bold ml-1">Interval</label>
+                <div class="flex">
+                  <input type="number" v-model="bp.interval"
+                    class="flex-1 bg-slate-800 border border-slate-700 rounded-l-xl px-3 py-2 text-sm focus:ring-1 focus:ring-indigo-500 outline-none" />
+                  <select v-model="bp.intervalUnit"
+                    class="bg-slate-700 border border-slate-700 rounded-r-xl px-2 py-2 text-xs font-semibold text-indigo-300 outline-none cursor-pointer border-l-0">
+                    <option value="second">Sec</option>
+                    <option value="minute">Min</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="text-[10px] uppercase tracking-widest text-slate-500 font-bold ml-1">Duration</label>
+                <div class="flex">
+                  <input type="number" v-model="bp.duration"
+                    class="flex-1 bg-slate-800 border border-slate-700 rounded-l-xl px-3 py-2 text-sm focus:ring-1 focus:ring-indigo-500 outline-none" />
+                  <select v-model="bp.durationUnit"
+                    class="bg-slate-700 border border-slate-700 rounded-r-xl px-2 py-2 text-xs font-semibold text-emerald-300 outline-none cursor-pointer border-l-0">
+                    <option value="second">Sec</option>
+                    <option value="minute">Min</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
             <p v-if="breakpoints.length === 0" class="text-center text-slate-500 text-sm py-4 italic">

@@ -25,7 +25,6 @@ const predictWebcam = (
 ) => {
   const canvas = canvasElement.value;
   const ctx = canvas?.getContext("2d");
-
   (() => {
     if (!canvas || !ctx || !faceLandmarker || !videoElement.value || lastVideoTime === videoElement.value.currentTime) return;
     resizeCanvas(canvas, videoElement.value.videoWidth, videoElement.value.videoHeight);
@@ -84,6 +83,8 @@ onMounted(async () => {
   if (!video || !canvas) {
     throw new Error("canvas or video element was not found");
   }
+
+
 
   faceLandmarker = await setupLandmarker();
   await startCamera();
