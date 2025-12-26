@@ -52,6 +52,7 @@ function createOverlay() {
   });
 
   overlayWindow.setIgnoreMouseEvents(true)
+  overlayWindow.setMenu(null);
 
   overlayWindow.on("ready-to-show", () => {
     overlayWindow.hide();
@@ -85,9 +86,6 @@ function createOverlay() {
 app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId("com.blinker");
-  globalShortcut.register("CommandOrControl+W", () => {
-        //stuff here
-    });
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
