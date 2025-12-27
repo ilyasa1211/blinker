@@ -267,28 +267,27 @@ onUnmounted(async () => {
             <div class="text-6xl mb-4">🎭</div>
             <p class="text-sm tracking-widest uppercase">Video Feed Canvas</p>
           </div>
-          <!-- <div class="absolute top-5 left-5 z-10">
+
+
+          <video ref="videoElement" class="absolute inset-0 w-full h-full object-cover invisible" autoplay muted
+            playsinline></video>
+
+          <canvas ref="canvasElement"
+            class="absolute inset-0 w-full h-full object-cover z-10 bg-slate-800 mirror"></canvas>
+
+          <div class="absolute top-5 left-5 z-10">
             <div
-              :class="active ? 'bg-green-500/20 text-green-400 border-green-500/50' : 'bg-red-500/20 text-red-400 border-red-500/50'"
+              :class="activeCamera ? 'bg-green-500/20 text-green-400 border-green-500/50' : 'bg-red-500/20 text-red-400 border-red-500/50'"
               class="px-4 py-1.5 rounded-full border backdrop-blur-md text-sm font-bold flex items-center gap-2">
               <span class="relative flex h-2 w-2">
-                <span v-if="active"
+                <span v-if="activeCamera"
                   class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                 <span class="relative inline-flex rounded-full h-2 w-2"
-                  :class="active ? 'bg-green-500' : 'bg-red-500'"></span>
+                  :class="activeCamera ? 'bg-green-500' : 'bg-red-500'"></span>
               </span>
-              {{ active ? 'LIVE TRACKING' : 'SYSTEM PAUSED' }}
+              {{ activeCamera ? 'LIVE TRACKING' : 'SYSTEM PAUSED' }}
             </div>
-          </div> -->
-
-          <!-- <Camera v-on:eyes-close="handleEyesClose" v-on:eyes-open="handleEyesOpen"
-            :threshold-eyes-close="THRESHOLD_EYES_CLOSE" /> -->
-          <video ref="videoElement" class="absolute inset-0 w-full h-full object-cover invisible" autoplay muted
-            playsinline>
-          </video>
-
-          <canvas ref="canvasElement" class="absolute inset-0 w-full h-full object-cover z-10 bg-slate-800 mirror">
-          </canvas>
+          </div>
         </div>
 
         <div
@@ -320,9 +319,9 @@ onUnmounted(async () => {
         <div class="bg-slate-800/50 border border-slate-700 p-6 rounded-3xl">
           <h3 class="text-indigo-400 font-bold uppercase text-xs tracking-widest mb-6">Device Settings</h3>
           <div class="space-y-4">
-            <label class="text-sm text-slate-400">Select Input Source</label>
+            <label class="block text-sm font-medium text-slate-400 mb-2">Select Input Source</label>
             <select v-model="selectedDeviceId" @change="handleCameraChange"
-              class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+              class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none transition">
               <option v-for="device in devices" :key="device.deviceId" :value="device.deviceId">
                 {{ device.label || `Camera ${devices.indexOf(device) + 1}` }}
               </option>
