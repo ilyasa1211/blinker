@@ -304,7 +304,7 @@ onUnmounted(async () => {
               class="w-full md:w-auto px-10 py-4 rounded-2xl font-bold text-lg transition-all active:scale-95 shadow-xl">
               {{ activeCamera ? 'Stop Camera' : 'Start Camera' }}
             </button>
-            <button @click="toggleSession" :class="[
+            <button @click="toggleSession" :disabled="!activeCamera" :class="[
               activeSession ? 'bg-rose-600 hover:bg-rose-500 shadow-rose-900/20' : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-900/20',
               !activeCamera ? 'opacity-30 cursor-not-allowed' : ''
             ]"
