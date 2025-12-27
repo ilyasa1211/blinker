@@ -1,7 +1,8 @@
 <script setup lang="ts">
-
-import { ref } from "vue";
-import Camera from "./components/Camera.vue";
+import type { FaceLandmarker } from "@mediapipe/tasks-vision";
+import { onMounted, onUnmounted, ref } from "vue";
+import { drawLandmark, setupLandmarker } from "./common/landmark.js";
+import { resizeCanvas } from "./common/util.js";
 
 /**
  * Show overlay window
@@ -32,28 +33,37 @@ interface Breakpoint {
 }
 // State
 const THRESHOLD_EYES_CLOSE = 0.3;
-const active = ref(false);
-const blinkCount = ref(0);
-const blinkTimeout = ref(0.5);
+const activeSession = ref<boolean>(false);
+const activeCamera = ref<boolean>(false);
+const blinkCount = ref<number>(0);
+const blinkTimeout = ref<number>(0.5);
 const breakpoints = ref<Breakpoint[]>([
   {
     // 20-20-20 rule
     interval: 20,
     intervalUnit: "minute",
     duration: 20,
-    durationUnit: "second"
-  }
+    durationUnit: "second",
+  },
 ]);
 const timeoutId = ref<number | undefined | NodeJS.Timeout>(undefined);
 const isEyesCloseRef = ref<boolean>(false);
+const videoElement = ref<HTMLVideoElement>();
+const canvasElement = ref<HTMLCanvasElement>();
+const devices = ref<MediaDeviceInfo[]>([]);
+const selectedDeviceId = ref<string>("");
+
+let requestAnimationFrameId: number | undefined;
+let faceLandmarker: FaceLandmarker | undefined;
+let lastVideoTime = -1;
 
 // Methods
 const addBreakpoint = () => {
-  breakpoints.value.push({ 
-    interval: 60, 
+  breakpoints.value.push({
+    interval: 60,
     intervalUnit: "minute",
     duration: 30,
-    durationUnit: "minute"
+    durationUnit: "minute",
   });
 };
 
@@ -63,19 +73,16 @@ const removeBreakpoint = (index: number) => {
 
 const removeTimeout = () => {
   clearTimeout(timeoutId.value);
-}
+};
 
 const resetTimeout = (callback: () => void) => {
   clearTimeout(timeoutId.value);
-  timeoutId.value = setTimeout(
-    callback,
-    blinkTimeout.value * 1000,
-  );
-}
+  timeoutId.value = setTimeout(callback, blinkTimeout.value * 1000);
+};
 
 const incrementBlinkCounter = () => {
   blinkCount.value++;
-}
+};
 
 const handleEyesClose = () => {
   if (!isEyesCloseRef.value) {
@@ -83,34 +90,171 @@ const handleEyesClose = () => {
     incrementBlinkCounter();
   }
 
-  if (!active.value) return;
+  if (!activeSession.value) return;
 
   hideOverlay();
   removeTimeout();
-}
+};
 
 const handleEyesOpen = () => {
   if (isEyesCloseRef.value) {
     isEyesCloseRef.value = false;
 
-    if (!active.value) return;
+    if (!activeSession.value) return;
 
     resetTimeout(showOverlay);
   }
-}
+};
 
-const handleActivation = () => {
-  if (active.value) {
+const toggleSession = () => {
+  if (activeSession.value) {
     hideOverlay();
     removeTimeout();
   } else {
     resetTimeout(showOverlay);
   }
 
-  active.value = !active.value;
+  activeSession.value = !activeSession.value;
 };
 
+const predictWebcam = () => {
+  const canvas = canvasElement.value;
+  const ctx = canvas?.getContext("2d");
+  (() => {
+    if (
+      !canvas ||
+      !ctx ||
+      !faceLandmarker ||
+      !videoElement.value ||
+      lastVideoTime === videoElement.value.currentTime
+    )
+      return;
+    resizeCanvas(
+      canvas,
+      videoElement.value.videoWidth,
+      videoElement.value.videoHeight,
+    );
+
+    lastVideoTime = videoElement.value.currentTime;
+    const results = faceLandmarker.detectForVideo(
+      videoElement.value,
+      performance.now(),
+    );
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (results) {
+      drawLandmark(results, ctx);
+    }
+
+    if (results.faceBlendshapes && results.faceBlendshapes.length > 0) {
+      const blinkEyes = results.faceBlendshapes
+        .at(0)
+        ?.categories.filter(
+          (cat) =>
+            cat.categoryName === "eyeBlinkLeft" ||
+            cat.categoryName === "eyeBlinkRight",
+        );
+
+      // is eye's closing
+      if (
+        blinkEyes?.every((blinkEye) => blinkEye.score >= THRESHOLD_EYES_CLOSE)
+      ) {
+        handleEyesClose();
+      }
+
+      // is eye's opening
+      if (
+        blinkEyes?.every((blinkEye) => blinkEye.score < THRESHOLD_EYES_CLOSE)
+      ) {
+        handleEyesOpen();
+      }
+    }
+  })();
+
+  requestAnimationFrameId = requestAnimationFrame(predictWebcam);
+};
+
+// 2. Start Camera
+const startCamera = async () => {
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: {
+      deviceId: selectedDeviceId.value
+        ? { exact: selectedDeviceId.value }
+        : undefined,
+    },
+  });
+  if (!videoElement.value) throw new Error("video element is undefined");
+
+  videoElement.value.srcObject = stream;
+  videoElement.value.addEventListener("loadeddata", predictWebcam);
+  // active.value = true;
+};
+
+const stopCamera = () => {
+  if (!videoElement.value) return;
+
+  const stream = videoElement.value.srcObject as MediaStream;
+
+  if (!stream) return;
+
+  stream.getTracks().forEach((track) => track.stop());
+  videoElement.value.srcObject = null;
+  activeCamera.value = false;
+  activeSession.value = false; // Force stop session if camera is off
+};
+
+const getCameras = async () => {
+  const allDevices = await navigator.mediaDevices.enumerateDevices();
+
+  devices.value = allDevices.filter((device) => device.kind === "videoinput");
+
+  if (devices.value.length > 0) {
+    selectedDeviceId.value = devices.value[0].deviceId;
+  }
+};
+
+const toggleCamera = async () => {
+  if (activeCamera.value) {
+    stopCamera();
+    activeCamera.value = false;
+  } else {
+    await startCamera();
+    activeCamera.value = true;
+  }
+};
+
+const handleCameraChange = () => {
+  stopCamera();
+  startCamera();
+};
+
+onMounted(async () => {
+  const video = videoElement.value;
+  const canvas = canvasElement.value;
+
+  if (!video || !canvas) {
+    throw new Error("canvas or video element was not found");
+  }
+  await getCameras();
+  faceLandmarker = await setupLandmarker();
+  // await startCamera();
+
+  video?.addEventListener("loadeddata", predictWebcam);
+});
+
+onUnmounted(async () => {
+  const video = videoElement.value;
+
+  video?.removeEventListener("loadeddata", predictWebcam);
+  faceLandmarker?.close();
+
+  if (typeof requestAnimationFrameId !== "undefined") {
+    cancelAnimationFrame(requestAnimationFrameId);
+  }
+});
 </script>
+
 
 <template>
   <div class="min-h-screen bg-[#0f172a] text-slate-200 p-4 md:p-8 font-sans">
@@ -137,8 +281,14 @@ const handleActivation = () => {
             </div>
           </div> -->
 
-          <Camera v-on:eyes-close="handleEyesClose" v-on:eyes-open="handleEyesOpen"
-            :threshold-eyes-close="THRESHOLD_EYES_CLOSE" />
+          <!-- <Camera v-on:eyes-close="handleEyesClose" v-on:eyes-open="handleEyesOpen"
+            :threshold-eyes-close="THRESHOLD_EYES_CLOSE" /> -->
+          <video ref="videoElement" class="absolute inset-0 w-full h-full object-cover invisible" autoplay muted
+            playsinline>
+          </video>
+
+          <canvas ref="canvasElement" class="absolute inset-0 w-full h-full object-cover z-10 bg-slate-800 mirror">
+          </canvas>
         </div>
 
         <div
@@ -149,15 +299,37 @@ const handleActivation = () => {
               {{ blinkCount }}
             </h2>
           </div>
-          <button @click="handleActivation"
-            :class="active ? 'bg-rose-600 hover:bg-rose-500 shadow-rose-900/20' : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-900/20'"
-            class="w-full md:w-auto px-10 py-4 rounded-2xl font-bold text-lg transition-all active:scale-95 shadow-xl">
-            {{ active ? 'Stop Session' : 'Start Session' }}
-          </button>
+          <div class="grid grid-cols-2 gap-4">
+            <button @click="toggleCamera"
+              :class="activeCamera ? 'bg-rose-600 hover:bg-rose-500 shadow-rose-900/20' : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-900/20'"
+              class="w-full md:w-auto px-10 py-4 rounded-2xl font-bold text-lg transition-all active:scale-95 shadow-xl">
+              {{ activeCamera ? 'Stop Camera' : 'Start Camera' }}
+            </button>
+            <button @click="toggleSession" :class="[
+              activeSession ? 'bg-rose-600 hover:bg-rose-500 shadow-rose-900/20' : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-900/20',
+              !activeCamera ? 'opacity-30 cursor-not-allowed' : ''
+            ]"
+              class="w-full md:w-auto px-10 py-4 rounded-2xl font-bold text-lg transition-all active:scale-95 shadow-xl">
+              {{ activeSession ? 'Stop Session' : 'Start Session' }}
+            </button>
+          </div>
         </div>
       </div>
 
       <div class="lg:col-span-4 space-y-6">
+        <div class="bg-slate-800/50 border border-slate-700 p-6 rounded-3xl">
+          <h3 class="text-indigo-400 font-bold uppercase text-xs tracking-widest mb-6">Device Settings</h3>
+          <div class="space-y-4">
+            <label class="text-sm text-slate-400">Select Input Source</label>
+            <select v-model="selectedDeviceId" @change="handleCameraChange"
+              class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+              <option v-for="device in devices" :key="device.deviceId" :value="device.deviceId">
+                {{ device.label || `Camera ${devices.indexOf(device) + 1}` }}
+              </option>
+            </select>
+          </div>
+        </div>
+
         <div class="bg-slate-800/50 border border-slate-700 p-6 rounded-3xl">
           <h3 class="text-indigo-400 font-bold uppercase text-xs tracking-widest mb-6">Configuration</h3>
           <div class="space-y-4">
@@ -242,5 +414,9 @@ const handleActivation = () => {
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: #334155;
   border-radius: 10px;
+}
+
+.mirror {
+  transform: scaleX(-1);
 }
 </style>

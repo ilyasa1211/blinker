@@ -52,7 +52,7 @@ function createOverlay() {
     transparent: false, // set true if you want transparent overlay
   });
 
-  overlayWindow.setIgnoreMouseEvents(true)
+  overlayWindow.setIgnoreMouseEvents(true);
   overlayWindow.setMenu(null);
 
   overlayWindow.on("ready-to-show", () => {
@@ -103,7 +103,7 @@ app.whenReady().then(() => {
   ipcMain.on("hide-overlay", hide);
   ipcMain.on("show-overlay", show);
 
-  app.on("activate", function () {
+  app.on("activate", () => {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

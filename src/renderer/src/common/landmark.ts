@@ -6,7 +6,7 @@ import {
 } from "@mediapipe/tasks-vision";
 import task from "/task-vision/face_landmarker.task?url";
 
-let landmarker: FaceLandmarker | undefined = undefined;
+let landmarker: FaceLandmarker | undefined;
 
 export async function setupLandmarker() {
   if (typeof landmarker !== "undefined") return landmarker;
