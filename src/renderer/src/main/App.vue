@@ -4,7 +4,6 @@ import { onMounted, onUnmounted, ref, watch } from "vue";
 import { drawLandmark, setupLandmarker } from "./common/landmark.js";
 import { getRandomId, resizeCanvas, toMs } from "./common/util.js";
 
-
 /**
  * Show overlay window
  */
@@ -67,7 +66,7 @@ const startBreak = (ms: number) => {
   isBreak.value = true;
   showOverlay();
   window.api?.startBreak(ms);
-}
+};
 
 const addBreakpoint = () => {
   breakpoints.value.push({
@@ -251,7 +250,6 @@ const handleCameraChange = () => {
   stopCamera();
   startCamera();
 };
-
 
 function startBreakpoint(bp: Breakpoint) {
   // 1. Clear any existing logic for this ID
