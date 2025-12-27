@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { FaceLandmarker } from "@mediapipe/tasks-vision";
-import { onMounted, onUnmounted, ref } from "vue";
+import { onMounted, onUnmounted, ref, watch } from "vue";
 import { drawLandmark, setupLandmarker } from "./common/landmark.js";
-import { resizeCanvas } from "./common/util.js";
+import { getRandomId, resizeCanvas, toMs } from "./common/util.js";
 
 /**
  * Show overlay window
@@ -19,6 +19,7 @@ function hideOverlay() {
 }
 
 interface Breakpoint {
+  id: string;
   /**
    * Repeat every x (minute/second).
    */
@@ -40,6 +41,7 @@ const blinkTimeout = ref<number>(0.5);
 const breakpoints = ref<Breakpoint[]>([
   {
     // 20-20-20 rule
+    id: getRandomId(),
     interval: 20,
     intervalUnit: "minute",
     duration: 20,
@@ -52,6 +54,7 @@ const videoElement = ref<HTMLVideoElement>();
 const canvasElement = ref<HTMLCanvasElement>();
 const devices = ref<MediaDeviceInfo[]>([]);
 const selectedDeviceId = ref<string>("");
+const intervals = new Map<string, number>();
 
 let requestAnimationFrameId: number | undefined;
 let faceLandmarker: FaceLandmarker | undefined;
@@ -60,6 +63,7 @@ let lastVideoTime = -1;
 // Methods
 const addBreakpoint = () => {
   breakpoints.value.push({
+    id: getRandomId(),
     interval: 60,
     intervalUnit: "minute",
     duration: 30,
@@ -68,7 +72,10 @@ const addBreakpoint = () => {
 };
 
 const removeBreakpoint = (index: number) => {
-  breakpoints.value.splice(index, 1);
+  const bp = breakpoints.value.splice(index, 1).at(0);
+  if (bp) {
+    stopBreakpoint(bp.id)
+  }
 };
 
 const removeTimeout = () => {
@@ -106,15 +113,23 @@ const handleEyesOpen = () => {
   }
 };
 
+const stopSession = () => {
+  hideOverlay();
+  removeTimeout();
+  activeSession.value = false;
+}
+
+const startSession = () => {
+  resetTimeout(showOverlay);
+  activeSession.value = true;
+}
+
 const toggleSession = () => {
   if (activeSession.value) {
-    hideOverlay();
-    removeTimeout();
+    stopSession();
   } else {
-    resetTimeout(showOverlay);
+    startSession();
   }
-
-  activeSession.value = !activeSession.value;
 };
 
 const predictWebcam = () => {
@@ -201,7 +216,7 @@ const stopCamera = () => {
   stream.getTracks().forEach((track) => track.stop());
   videoElement.value.srcObject = null;
   activeCamera.value = false;
-  activeSession.value = false; // Force stop session if camera is off
+  stopSession();
 };
 
 const getCameras = async () => {
@@ -228,6 +243,48 @@ const handleCameraChange = () => {
   stopCamera();
   startCamera();
 };
+
+function startBreakpoint(bp: Breakpoint) {
+  stopBreakpoint(bp.id);
+
+  const ms = toMs(bp.interval, bp.intervalUnit);
+
+  const id = window.setInterval(() => {
+    console.log(`Break: ${bp.id}`);
+    // trigger break UI here
+  }, ms);
+
+  intervals.set(bp.id, id);
+}
+
+function stopBreakpoint(id: string) {
+  const interval = intervals.get(id);
+  if (interval) {
+    clearInterval(interval);
+    intervals.delete(id);
+  }
+}
+
+watch(
+  breakpoints,
+  (newBps, oldBps) => {
+    const newIds = new Set(newBps.map(b => b.id));
+
+    // start or update
+    newBps.forEach(bp => {
+      startBreakpoint(bp);
+    });
+
+    // stop removed breakpoints
+    oldBps?.forEach(bp => {
+      if (!newIds.has(bp.id)) {
+        stopBreakpoint(bp.id);
+      }
+    });
+  },
+  { deep: true, immediate: true }
+);
+
 
 onMounted(async () => {
   const video = videoElement.value;
@@ -334,7 +391,7 @@ onUnmounted(async () => {
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-slate-400 mb-2">Blink Timeout (Seconds)</label>
-              <input type="number" step="0.1" v-model="blinkTimeout"
+              <input type="number" step="0.1" v-model="blinkTimeout" min="0.2" max="2"
                 class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none transition" />
             </div>
           </div>
@@ -365,7 +422,7 @@ onUnmounted(async () => {
               <div>
                 <label class="text-[10px] uppercase tracking-widest text-slate-500 font-bold ml-1">Interval</label>
                 <div class="flex">
-                  <input type="number" v-model="bp.interval"
+                  <input type="number" v-model="bp.interval" :min="bp.intervalUnit === 'second' ? 10 : undefined"
                     class="flex-1 bg-slate-800 border border-slate-700 rounded-l-xl px-3 py-2 text-sm focus:ring-1 focus:ring-indigo-500 outline-none" />
                   <select v-model="bp.intervalUnit"
                     class="bg-slate-700 border border-slate-700 rounded-r-xl px-2 py-2 text-xs font-semibold text-indigo-300 outline-none cursor-pointer border-l-0">
@@ -378,7 +435,7 @@ onUnmounted(async () => {
               <div>
                 <label class="text-[10px] uppercase tracking-widest text-slate-500 font-bold ml-1">Duration</label>
                 <div class="flex">
-                  <input type="number" v-model="bp.duration"
+                  <input type="number" v-model="bp.duration" min="1"
                     class="flex-1 bg-slate-800 border border-slate-700 rounded-l-xl px-3 py-2 text-sm focus:ring-1 focus:ring-indigo-500 outline-none" />
                   <select v-model="bp.durationUnit"
                     class="bg-slate-700 border border-slate-700 rounded-r-xl px-2 py-2 text-xs font-semibold text-emerald-300 outline-none cursor-pointer border-l-0">
