@@ -50,6 +50,10 @@ function createOverlay() {
     skipTaskbar: true,
     resizable: false,
     transparent: false, // set true if you want transparent overlay
+    webPreferences: {
+      preload: join(__dirname, "../preload/index.js"),
+      sandbox: false,
+    },
   });
 
   overlayWindow.setIgnoreMouseEvents(true);
@@ -78,6 +82,8 @@ function createOverlay() {
     hide: () => overlayWindow?.hide(),
     show: () => overlayWindow?.show(),
     exit: () => overlayWindow?.close(),
+    onBreakStart: (durationMs: number) =>
+      overlayWindow.webContents.send("break-start", durationMs),
   };
 }
 
@@ -95,13 +101,16 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window);
   });
 
-  const { hide, show, exit } = createOverlay();
-  createWindow({ onClose: exit });
+  const overlay = createOverlay();
+  createWindow({ onClose: overlay.exit });
 
   // IPC test
   ipcMain.on("ping", () => console.log("pong"));
-  ipcMain.on("hide-overlay", hide);
-  ipcMain.on("show-overlay", show);
+  ipcMain.on("hide-overlay", overlay.hide);
+  ipcMain.on("show-overlay", overlay.show);
+  ipcMain.on("break-start", (_event, durationMs: number) => {
+    overlay.onBreakStart(durationMs);
+  });
 
   app.on("activate", () => {
     // On macOS it's common to re-create a window in the app when the

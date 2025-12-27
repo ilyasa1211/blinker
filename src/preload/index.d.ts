@@ -6,6 +6,8 @@ declare global {
     api: {
       showOverlay(): void;
       hideOverlay(): void;
+      startBreak(durationMs: number): void;
+      onBreak(cb: (durationMs: number) => void): void;
     };
   }
 }

@@ -1,13 +1,21 @@
 import { electronAPI } from "@electron-toolkit/preload";
 import { contextBridge, ipcRenderer } from "electron";
 
+console.log("Preload loaded for window:", location.href);
+
 // Custom APIs for renderer
 const api = {
-  showOverlay: () => {
+  showOverlay() {
     ipcRenderer.send("show-overlay");
   },
-  hideOverlay: () => {
+  hideOverlay() {
     ipcRenderer.send("hide-overlay");
+  },
+  startBreak(durationMs: number) {
+    ipcRenderer.send("break-start", durationMs);
+  },
+  onBreak(cb: (durationMs: number) => void) {
+    ipcRenderer.on("break-start", (_event, value: number) => cb(value));
   },
 };
 

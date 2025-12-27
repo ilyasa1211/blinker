@@ -4,6 +4,7 @@ import { onMounted, onUnmounted, ref, watch } from "vue";
 import { drawLandmark, setupLandmarker } from "./common/landmark.js";
 import { getRandomId, resizeCanvas, toMs } from "./common/util.js";
 
+
 /**
  * Show overlay window
  */
@@ -55,12 +56,19 @@ const canvasElement = ref<HTMLCanvasElement>();
 const devices = ref<MediaDeviceInfo[]>([]);
 const selectedDeviceId = ref<string>("");
 const intervals = new Map<string, number>();
+const isBreak = ref<boolean>(false);
 
 let requestAnimationFrameId: number | undefined;
 let faceLandmarker: FaceLandmarker | undefined;
 let lastVideoTime = -1;
 
 // Methods
+const startBreak = (ms: number) => {
+  isBreak.value = true;
+  showOverlay();
+  window.api?.startBreak(ms);
+}
+
 const addBreakpoint = () => {
   breakpoints.value.push({
     id: getRandomId(),
@@ -74,7 +82,7 @@ const addBreakpoint = () => {
 const removeBreakpoint = (index: number) => {
   const bp = breakpoints.value.splice(index, 1).at(0);
   if (bp) {
-    stopBreakpoint(bp.id)
+    stopBreakpoint(bp.id);
   }
 };
 
@@ -97,7 +105,7 @@ const handleEyesClose = () => {
     incrementBlinkCounter();
   }
 
-  if (!activeSession.value) return;
+  if (!activeSession.value || isBreak.value) return;
 
   hideOverlay();
   removeTimeout();
@@ -107,7 +115,7 @@ const handleEyesOpen = () => {
   if (isEyesCloseRef.value) {
     isEyesCloseRef.value = false;
 
-    if (!activeSession.value) return;
+    if (!activeSession.value || isBreak.value) return;
 
     resetTimeout(showOverlay);
   }
@@ -117,12 +125,12 @@ const stopSession = () => {
   hideOverlay();
   removeTimeout();
   activeSession.value = false;
-}
+};
 
 const startSession = () => {
   resetTimeout(showOverlay);
   activeSession.value = true;
-}
+};
 
 const toggleSession = () => {
   if (activeSession.value) {
@@ -244,23 +252,43 @@ const handleCameraChange = () => {
   startCamera();
 };
 
+
 function startBreakpoint(bp: Breakpoint) {
+  // 1. Clear any existing logic for this ID
   stopBreakpoint(bp.id);
 
-  const ms = toMs(bp.interval, bp.intervalUnit);
+  const intervalMs = toMs(bp.interval, bp.intervalUnit);
+  const durationMs = toMs(bp.duration, bp.durationUnit);
 
-  const id = window.setInterval(() => {
-    console.log(`Break: ${bp.id}`);
-    // trigger break UI here
-  }, ms);
+  // 2. Define the recursive "loop"
+  const runCycle = () => {
+    isBreak.value = false;
+    const timeoutId = window.setTimeout(() => {
+      // A. Trigger the break UI
+      startBreak(durationMs);
 
-  intervals.set(bp.id, id);
+      // B. Schedule the NEXT work interval ONLY after the break duration is finished
+      // This effectively "pauses" the tracking during the break
+      const pauseId = window.setTimeout(() => {
+        runCycle();
+      }, durationMs);
+
+      // Track the pause timeout so we can cancel it if needed
+      intervals.set(bp.id, pauseId);
+    }, intervalMs);
+
+    // Track the work timeout
+    intervals.set(bp.id, timeoutId);
+  };
+
+  // 3. Kick off the first cycle
+  runCycle();
 }
 
 function stopBreakpoint(id: string) {
-  const interval = intervals.get(id);
-  if (interval) {
-    clearInterval(interval);
+  const timeoutId = intervals.get(id);
+  if (timeoutId) {
+    window.clearTimeout(timeoutId); // Works for both work and pause timeouts
     intervals.delete(id);
   }
 }
@@ -268,23 +296,22 @@ function stopBreakpoint(id: string) {
 watch(
   breakpoints,
   (newBps, oldBps) => {
-    const newIds = new Set(newBps.map(b => b.id));
+    const newIds = new Set(newBps.map((b) => b.id));
 
     // start or update
-    newBps.forEach(bp => {
+    newBps.forEach((bp) => {
       startBreakpoint(bp);
     });
 
     // stop removed breakpoints
-    oldBps?.forEach(bp => {
+    oldBps?.forEach((bp) => {
       if (!newIds.has(bp.id)) {
         stopBreakpoint(bp.id);
       }
     });
   },
-  { deep: true, immediate: true }
+  { deep: true, immediate: true },
 );
-
 
 onMounted(async () => {
   const video = videoElement.value;

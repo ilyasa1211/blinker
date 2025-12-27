@@ -8,7 +8,7 @@ export function resizeCanvas(
 }
 
 export function getRandomId() {
-  return Math.random().toString()
+  return Math.random().toString();
 }
 
 export function toMs(value: number, unit: "minute" | "second") {
