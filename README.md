@@ -1,6 +1,12 @@
 # Blinker
 
-[![.github/workflows/build.yaml](https://github.com/ilyasa1211/blinker/actions/workflows/build.yaml/badge.svg)](https://github.com/ilyasa1211/blinker/actions/workflows/build.yaml)
+<p align="center">
+  <img width="256" height="256" alt="icon" src="https://github.com/user-attachments/assets/0b181005-4e8f-4030-99da-41ca79d3ab52" />
+</p>
+
+<p align="center">
+ <img src="https://github.com/ilyasa1211/blinker/actions/workflows/build.yaml/badge.svg" />
+</p>
 
 Too focused doing your job and forget to blink? that's bad for your eyes, fortunately this application just do the right thing for you.
 
