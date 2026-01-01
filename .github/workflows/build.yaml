@@ -22,6 +22,8 @@ jobs:
         run: npm ci
 
       - name: Build application
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
         run: |
           export HOME=${{ github.workspace }}
           ./update-version.sh
