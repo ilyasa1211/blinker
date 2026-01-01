@@ -1,9 +1,9 @@
 {
   "name": "blinker",
-  "version": "1.0.0",
-  "description": "An Electron application with React and TypeScript",
+  "version": "v1.1.0",
+  "description": "An application that remind you to blink and rest",
   "main": "./out/main/index.js",
-  "author": "example.com",
+  "author": "ilyasa1211",
   "homepage": "https://electron-vite.org",
   "scripts": {
     "format": "biome check --write",

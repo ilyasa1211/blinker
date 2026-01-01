@@ -24,6 +24,7 @@ jobs:
       - name: Build application
         run: |
           export HOME=${{ github.workspace }}
+          sh update-version.sh
 
           npx electron-vite build
           npx electron-builder --win --publish=never
