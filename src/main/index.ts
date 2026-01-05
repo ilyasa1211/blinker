@@ -1,7 +1,9 @@
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
-import { app, BrowserWindow, ipcMain, shell } from "electron";
+import { app, BrowserWindow, ipcMain, shell, Tray, Menu } from "electron";
 import { join } from "path";
 import icon from "../../resources/icon.png?asset";
+
+let tray: Tray | null = null;
 
 function createWindow({
   onClose = () => void 0,
@@ -87,6 +89,28 @@ function createOverlay() {
   };
 }
 
+function initTray() {
+  tray = new Tray(icon)
+  tray.setToolTip("Open menu")
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'Open App',
+      click: () => {
+        const wins = BrowserWindow.getAllWindows()
+        if (wins.length === 0) {
+          createWindow()
+        } else {
+          wins[0].focus()
+        }
+      }
+    },
+    { role: 'quit' }
+  ])
+
+  tray.setContextMenu(contextMenu)
+}
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -103,6 +127,8 @@ app.whenReady().then(() => {
 
   const overlay = createOverlay();
   createWindow({ onClose: overlay.exit });
+
+  initTray();
 
   // IPC test
   ipcMain.on("ping", () => console.log("pong"));
