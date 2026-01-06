@@ -1,7 +1,7 @@
 # Blinker
 
 <p align="center">
-  <img width="128" height="128" alt="icon" src="https://github.com/user-attachments/assets/0b181005-4e8f-4030-99da-41ca79d3ab52" />
+  <img width="128" height="128" alt="icon" src="./build/icon.png" />
 </p>
 
 <p align="center">
