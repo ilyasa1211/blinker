@@ -50,7 +50,7 @@ function createOverlay() {
     alwaysOnTop: true,
     show: false,
     skipTaskbar: true,
-    resizable: false,
+    resizable: true,
     transparent: false, // set true if you want transparent overlay
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
