@@ -28,25 +28,6 @@ Too focused doing your job and forget to blink? that's bad for your eyes, fortun
 
 - If the user doesn’t have camera, it should have another method for reminding the user to blink, such as interval timer
 
-## Developer Note
-
-Devcontainer doesn't really work,
-if you want to develop inside a container, you need to compile them everytime you want to see the change.
-
-```bash
-# Inside a devcontainer
-npm run build:unpack
-# Switch to your host terminal
-./dist/linux-unpacked/blinker
-```
-
-```bash
-# Or you could also try on browser, inside the devcontainer run this command: 
-npm run dev -- --noSandbox
-# Then go to your browser's http://localhost:5173
-# Make sure you've forward the port 5173 in the devcontainer
-```
-
 ## Project Setup
 
 ### Install
