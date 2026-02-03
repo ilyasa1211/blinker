@@ -3,10 +3,10 @@ import { watch } from 'vue';
 import { Breakpoint } from '../common/types.js';
 import { getRandomId, toMs, startBreak as callBreak, stopBreak } from '../common/utils.js';
 import { state } from '../state.js';
+import { settings } from '../settings.js';
 
 const breakIntervals = new Map<string, number>();
 const notificationIntervals = new Map<string, number>();
-const notificationBeforeSecond = 20; // notify 30s before the break
 
 function addBreakpoint() {
   state.breakpoints.push({
@@ -18,9 +18,9 @@ function addBreakpoint() {
   });
 };
 
-function showBreakNotification() {
+function showBreakNotification(sec: number) {
   new Notification("Break is coming!", {
-    body: `Break in ${notificationBeforeSecond}s`
+    body: `Break in ${sec}s`
   });
 }
 
@@ -42,14 +42,15 @@ function startBreakpoint(bp: Breakpoint) {
 
   const intervalMs = toMs(bp.interval, bp.intervalUnit);
   const durationMs = toMs(bp.duration, bp.durationUnit);
+  const notifyBeforeSecond = settings.notifyBeforeSecond;
 
   // 2. Define the recursive "loop"
   const runCycle = () => {
     state.isBreak = false;
 
     // only notify if interval is greater than notificationBeforeSecond
-    if (intervalMs > notificationBeforeSecond * 1000) {
-      const notificationTimeoutId = window.setTimeout(() => showBreakNotification(), intervalMs - notificationBeforeSecond * 1000);
+    if (intervalMs > notifyBeforeSecond * 1000) {
+      const notificationTimeoutId = window.setTimeout(() => showBreakNotification(notifyBeforeSecond), intervalMs - notifyBeforeSecond * 1000);
 
       notificationIntervals.set(bp.id, notificationTimeoutId);
     }
