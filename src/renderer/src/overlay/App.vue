@@ -59,7 +59,7 @@ window.api?.onBreak((durationMs: number) => {
           <div class="w-full space-y-8">
             <div class="relative h-4 bg-slate-900 rounded-full border border-white/5 shadow-2xl overflow-hidden">
               <div
-                class="h-full bg-linear-to-r from-indigo-600 via-blue-400 to-indigo-600 bg-[length:200%_auto] animate-shimmer"
+                class="h-full bg-linear-to-r from-indigo-600 via-blue-400 to-indigo-600 bg-size-[200%_auto] animate-shimmer"
                 :style="{ width: progress + '%' }"></div>
             </div>
 

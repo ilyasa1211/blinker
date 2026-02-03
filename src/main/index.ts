@@ -1,12 +1,12 @@
 import { electronApp, is, optimizer } from "@electron-toolkit/utils";
-import { app, BrowserWindow, ipcMain, shell, Tray, Menu } from "electron";
+import { app, BrowserWindow, ipcMain, Menu, shell, Tray } from "electron";
 import { join } from "path";
 import icon from "../../resources/icon.png?asset";
 
 let tray: Tray | null = null;
 
 function createWindow({
-  onClose = () => void 0,
+  onClose = () => undefined,
 }: {
   onClose?: () => void;
 } = {}): void {
@@ -90,25 +90,25 @@ function createOverlay() {
 }
 
 function initTray() {
-  tray = new Tray(icon)
-  tray.setToolTip("Open menu")
+  tray = new Tray(icon);
+  tray.setToolTip("Open menu");
 
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: 'Open App',
+      label: "Open App",
       click: () => {
-        const wins = BrowserWindow.getAllWindows()
+        const wins = BrowserWindow.getAllWindows();
         if (wins.length === 0) {
-          createWindow()
+          createWindow();
         } else {
-          wins[0].focus()
+          wins[0].focus();
         }
-      }
+      },
     },
-    { role: 'quit' }
-  ])
+    { role: "quit" },
+  ]);
 
-  tray.setContextMenu(contextMenu)
+  tray.setContextMenu(contextMenu);
 }
 
 // This method will be called when Electron has finished
