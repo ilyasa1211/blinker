@@ -1,12 +1,26 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 
 const isBreak = ref<boolean>(false);
 const progress = ref(0);
 const timeLeftMs = ref(0);
+const currentTime = ref("");
 
 // Computed to show seconds formatted nicely (e.g. 5s)
 const secondsRemaining = computed(() => Math.ceil(timeLeftMs.value / 1000));
+
+let timer: number;
+
+window.api?.onBreakStart((durationMs: number) => {
+  isBreak.value = true;
+  startCountdown(durationMs);
+});
+
+window.api.onBreakStop(() => {
+  isBreak.value = false;
+  progress.value = 0;
+  window.api?.hideOverlay();
+});
 
 function startCountdown(durationMs: number) {
   const start = performance.now();
@@ -21,21 +35,30 @@ function startCountdown(durationMs: number) {
 
     if (progress.value < 100) {
       requestAnimationFrame(frame);
-    } 
+    }
   }
 
   requestAnimationFrame(frame);
 }
 
-window.api?.onBreakStart((durationMs: number) => {
-  isBreak.value = true;
-  startCountdown(durationMs);
+function updateTime() {
+  const now = new Date();
+  // Format to HH:mm (24-hour)
+  currentTime.value = now.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+onMounted(() => {
+  updateTime();
+  // Update every second to ensure the minute flip is accurate
+  timer = window.setInterval(updateTime, 1000);
 });
 
-window.api.onBreakStop(() => {
-    isBreak.value = false;
-    progress.value = 0;
-    window.api?.hideOverlay();
+onUnmounted(() => {
+  clearInterval(timer);
 });
 </script>
 
@@ -43,7 +66,9 @@ window.api.onBreakStop(() => {
   <div
     class="min-h-screen bg-slate-950 text-slate-200 flex flex-col items-center justify-center relative overflow-hidden font-sans">
 
-    <div v-if="isBreak" class="absolute inset-0 bg-indigo-600/5 animate-pulse"></div>
+    <div v-if="isBreak" class="absolute top-8 right-8 font-mono text-4xl text-slate-500 tracking-widest">
+      {{ currentTime }}
+    </div>
 
     <div class="w-full max-w-5xl px-12 z-10">
       <transition name="fade-up" mode="out-in">
@@ -122,5 +147,4 @@ window.api.onBreakStop(() => {
   opacity: 0;
   transform: translateY(60px) scale(0.98);
 }
-
 </style>

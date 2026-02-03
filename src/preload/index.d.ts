@@ -8,7 +8,7 @@ declare global {
       hideOverlay(): void;
       startBreak(durationMs: number): void;
       stopBreak(): void;
-      startBreak() :void;
+      startBreak(): void;
       onBreakStart(cb: (durationMs: number) => void): void;
       onBreakStop(cb: () => void): void;
     };

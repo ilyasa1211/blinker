@@ -135,8 +135,10 @@ app.whenReady().then(() => {
   ipcMain.on("ping", () => console.log("pong"));
   ipcMain.on("overlay:hide", overlay.hide);
   ipcMain.on("overlay:show", overlay.show);
-  ipcMain.on("break:start", (_event, durationMs: number) => overlay.onBreakStart(durationMs));
-  ipcMain.on("break:stop", () => overlay.onBreakStop())
+  ipcMain.on("break:start", (_event, durationMs: number) =>
+    overlay.onBreakStart(durationMs),
+  );
+  ipcMain.on("break:stop", () => overlay.onBreakStop());
 
   app.on("activate", () => {
     // On macOS it's common to re-create a window in the app when the
