@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { watch } from 'vue';
 import { Breakpoint } from '../common/types.js';
-import { getRandomId, toMs, startBreak as callBreak, stopBreak } from '../common/utils.js';
+import { getRandomId, toMs, startBreak as callBreak, stopBreak as callStopBreak } from '../common/utils.js';
 import { state } from '../state.js';
 import { settings } from '../settings.js';
+import audioSrc from "../assets/sounds/solemn-522.ogg"
 
 const breakIntervals = new Map<string, number>();
 const notificationIntervals = new Map<string, number>();
@@ -34,6 +35,15 @@ function removeBreakpoint(index: number) {
 function startBreak(ms: number) {
   state.isBreak = true;
   callBreak(ms)
+}
+
+function playAudio() {
+  new Audio(audioSrc).play()
+}
+
+function stopBreak() {
+  playAudio()
+  callStopBreak()
 }
 
 function startBreakpoint(bp: Breakpoint) {
