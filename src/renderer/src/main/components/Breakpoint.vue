@@ -4,9 +4,11 @@ import { Breakpoint } from '../common/types.js';
 import { getRandomId, toMs, startBreak as callBreak, stopBreak } from '../common/utils.js';
 import { state } from '../state.js';
 
-const intervals = new Map<string, number>();
+const breakIntervals = new Map<string, number>();
+const notificationIntervals = new Map<string, number>();
+const notificationBeforeSecond = 20; // notify 30s before the break
 
-const addBreakpoint = () => {
+function addBreakpoint() {
   state.breakpoints.push({
     id: getRandomId(),
     interval: 60,
@@ -16,7 +18,13 @@ const addBreakpoint = () => {
   });
 };
 
-const removeBreakpoint = (index: number) => {
+function showBreakNotification() {
+  new Notification("Break is coming!", {
+    body: `Break in ${notificationBeforeSecond}s`
+  });
+}
+
+function removeBreakpoint(index: number) {
   const bp = state.breakpoints.splice(index, 1).at(0);
   if (bp) {
     stopBreakpoint(bp.id);
@@ -38,6 +46,14 @@ function startBreakpoint(bp: Breakpoint) {
   // 2. Define the recursive "loop"
   const runCycle = () => {
     state.isBreak = false;
+
+    // only notify if interval is greater than notificationBeforeSecond
+    if (intervalMs > notificationBeforeSecond * 1000) {
+      const notificationTimeoutId = window.setTimeout(() => showBreakNotification(), intervalMs - notificationBeforeSecond * 1000);
+
+      notificationIntervals.set(bp.id, notificationTimeoutId);
+    }
+
     const timeoutId = window.setTimeout(() => {
       // A. Trigger the break UI
       startBreak(durationMs);
@@ -50,11 +66,11 @@ function startBreakpoint(bp: Breakpoint) {
       }, durationMs);
 
       // Track the pause timeout so we can cancel it if needed
-      intervals.set(bp.id, pauseId);
+      breakIntervals.set(bp.id, pauseId);
     }, intervalMs);
 
     // Track the work timeout
-    intervals.set(bp.id, timeoutId);
+    breakIntervals.set(bp.id, timeoutId);
   };
 
   // 3. Kick off the first cycle
@@ -62,10 +78,17 @@ function startBreakpoint(bp: Breakpoint) {
 }
 
 function stopBreakpoint(id: string) {
-  const timeoutId = intervals.get(id);
+  const timeoutId = breakIntervals.get(id);
+  const notificationTimeoutId = notificationIntervals.get(id);
+
   if (timeoutId) {
     window.clearTimeout(timeoutId); // Works for both work and pause timeouts
-    intervals.delete(id);
+    breakIntervals.delete(id);
+  }
+
+  if (notificationTimeoutId) {
+    window.clearTimeout(notificationTimeoutId);
+    notificationIntervals.delete(id)
   }
 }
 
