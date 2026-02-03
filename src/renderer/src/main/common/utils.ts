@@ -29,8 +29,11 @@ export function hideOverlay() {
   window.api?.hideOverlay();
 }
 
-// Methods
 export function startBreak(ms: number) {
   showOverlay();
   window.api?.startBreak(ms);
+}
+
+export function stopBreak() {
+  window.api?.stopBreak();
 }

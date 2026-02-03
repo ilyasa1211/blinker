@@ -7,7 +7,10 @@ declare global {
       showOverlay(): void;
       hideOverlay(): void;
       startBreak(durationMs: number): void;
-      onBreak(cb: (durationMs: number) => void): void;
+      stopBreak(): void;
+      startBreak() :void;
+      onBreakStart(cb: (durationMs: number) => void): void;
+      onBreakStop(cb: () => void): void;
     };
   }
 }

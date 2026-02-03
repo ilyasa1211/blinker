@@ -21,19 +21,21 @@ function startCountdown(durationMs: number) {
 
     if (progress.value < 100) {
       requestAnimationFrame(frame);
-    } else {
-      isBreak.value = false;
-      progress.value = 0;
-      window.api?.hideOverlay();
-    }
+    } 
   }
 
   requestAnimationFrame(frame);
 }
 
-window.api?.onBreak((durationMs: number) => {
+window.api?.onBreakStart((durationMs: number) => {
   isBreak.value = true;
   startCountdown(durationMs);
+});
+
+window.api.onBreakStop(() => {
+    isBreak.value = false;
+    progress.value = 0;
+    window.api?.hideOverlay();
 });
 </script>
 

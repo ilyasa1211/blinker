@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { watch } from 'vue';
 import { Breakpoint } from '../common/types.js';
-import { getRandomId, toMs, startBreak as callBreak } from '../common/utils.js';
+import { getRandomId, toMs, startBreak as callBreak, stopBreak } from '../common/utils.js';
 import { state } from '../state.js';
 
 const intervals = new Map<string, number>();
@@ -45,6 +45,7 @@ function startBreakpoint(bp: Breakpoint) {
       // B. Schedule the NEXT work interval ONLY after the break duration is finished
       // This effectively "pauses" the tracking during the break
       const pauseId = window.setTimeout(() => {
+        stopBreak()
         runCycle();
       }, durationMs);
 

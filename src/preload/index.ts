@@ -6,16 +6,22 @@ console.log("Preload loaded for window:", location.href);
 // Custom APIs for renderer
 const api = {
   showOverlay() {
-    ipcRenderer.send("show-overlay");
+    ipcRenderer.send("overlay:show");
   },
   hideOverlay() {
-    ipcRenderer.send("hide-overlay");
+    ipcRenderer.send("overlay:hide");
   },
   startBreak(durationMs: number) {
-    ipcRenderer.send("break-start", durationMs);
+    ipcRenderer.send("break:start", durationMs);
   },
-  onBreak(cb: (durationMs: number) => void) {
-    ipcRenderer.on("break-start", (_event, value: number) => cb(value));
+  stopBreak() {
+    ipcRenderer.send("break:stop");
+  },
+  onBreakStart(cb: (durationMs: number) => void) {
+    ipcRenderer.on("break:start", (_event, value: number) => cb(value));
+  },
+  onBreakStop(cb: () => void) {
+    ipcRenderer.on("break:stop", () => cb());
   },
 };
 
