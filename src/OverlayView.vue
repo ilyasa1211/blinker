@@ -75,18 +75,22 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="min-h-screen bg-slate-950 text-slate-200 flex flex-col items-center justify-center relative overflow-hidden font-sans">
-
-    <div v-if="isBreak" class="absolute top-8 right-8 font-mono text-4xl text-slate-500 tracking-widest">
+    class="min-h-screen bg-slate-950 text-slate-200 flex flex-col items-center justify-center relative overflow-hidden font-sans"
+  >
+    <div
+      v-if="isBreak"
+      class="absolute top-8 right-8 font-mono text-4xl text-slate-500 tracking-widest"
+    >
       {{ currentTime }}
     </div>
 
     <div class="w-full max-w-5xl px-12 z-10">
       <transition name="fade-up" mode="out-in">
         <div v-if="isBreak" class="flex flex-col items-center gap-16">
-
           <div class="text-center space-y-4">
-            <h1 class="text-7xl md:text-9xl font-black tracking-tighter text-white animate-soft-pulse">
+            <h1
+              class="text-7xl md:text-9xl font-black tracking-tighter text-white animate-soft-pulse"
+            >
               Take a break
             </h1>
             <p class="text-indigo-400/60 text-xl md:text-2xl font-light tracking-[0.4em] uppercase">
@@ -95,10 +99,13 @@ onUnmounted(() => {
           </div>
 
           <div class="w-full space-y-8">
-            <div class="relative h-4 bg-slate-900 rounded-full border border-white/5 shadow-2xl overflow-hidden">
+            <div
+              class="relative h-4 bg-slate-900 rounded-full border border-white/5 shadow-2xl overflow-hidden"
+            >
               <div
                 class="h-full bg-linear-to-r from-indigo-600 via-blue-400 to-indigo-600 bg-size-[200%_auto] animate-shimmer"
-                :style="{ width: progress + '%' }"></div>
+                :style="{ width: progress + '%' }"
+              ></div>
             </div>
 
             <div class="flex justify-center items-center gap-4 font-mono text-sm">
@@ -107,13 +114,14 @@ onUnmounted(() => {
                 <span class="text-white tabular-nums">{{ Math.round(progress) }}%</span>
               </div>
 
-              <div class="bg-indigo-600/20 border border-indigo-500/30 px-4 py-2 rounded-2xl shadow-xl">
+              <div
+                class="bg-indigo-600/20 border border-indigo-500/30 px-4 py-2 rounded-2xl shadow-xl"
+              >
                 <span class="text-indigo-400 mr-2">REMAINING</span>
                 <span class="text-indigo-300 tabular-nums">{{ secondsRemaining }}s</span>
               </div>
             </div>
           </div>
-
         </div>
       </transition>
     </div>
@@ -134,7 +142,6 @@ onUnmounted(() => {
 
 /* Soft scale pulse for the heading */
 @keyframes soft-pulse {
-
   0%,
   100% {
     transform: scale(1);

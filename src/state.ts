@@ -1,10 +1,10 @@
-import {reactive} from "vue"
-import { Breakpoint } from "./common/types.js"
-import { getRandomId } from "./common/utils.js"
+import { reactive } from "vue";
+import type { Breakpoint } from "./common/types.js";
+import { getRandomId } from "./common/utils.js";
 
 export const state = reactive<{
-  isBreak: boolean
-  breakpoints: Breakpoint[]
+  isBreak: boolean;
+  breakpoints: Breakpoint[];
 }>({
   isBreak: false,
   breakpoints: [
@@ -16,4 +16,4 @@ export const state = reactive<{
       durationUnit: "minute",
     },
   ],
-})
+});

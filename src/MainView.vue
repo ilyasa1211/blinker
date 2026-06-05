@@ -1,9 +1,7 @@
 <script setup lang="ts">
-
 import Breakpoint from "./components/Breakpoint.vue";
 import Camera from "./components/Camera.vue";
 import Settings from "./components/Settings.vue";
-
 </script>
 <template>
   <div class="min-h-screen bg-[#0f172a] text-slate-200 p-4 md:p-8 font-sans">

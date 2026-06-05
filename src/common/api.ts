@@ -1,13 +1,13 @@
-import { getCurrentWebviewWindow, WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { emitTo } from "@tauri-apps/api/event";
+import { getCurrentWebviewWindow, WebviewWindow } from "@tauri-apps/api/webviewWindow";
 
 const appWebview = getCurrentWebviewWindow();
 
 const OVERLAY_WINDOW_LABEL = "overlay";
-const START_BREAK_EVENT="break:start";
-const STOP_BREAK_EVENT="break:stop";
-const SHOW_OVERLAY_EVENT="overlay:show";
-const HIDE_OVERLAY_EVENT="overlay:hide";
+const START_BREAK_EVENT = "break:start";
+const STOP_BREAK_EVENT = "break:stop";
+const SHOW_OVERLAY_EVENT = "overlay:show";
+const HIDE_OVERLAY_EVENT = "overlay:hide";
 
 async function getOverlayWindow() {
   const window = await WebviewWindow.getByLabel(OVERLAY_WINDOW_LABEL);
@@ -36,7 +36,6 @@ export async function hideOverlay() {
   }
 }
 
-
 export function stopBreak() {
   emitTo(OVERLAY_WINDOW_LABEL, STOP_BREAK_EVENT);
   hideOverlay();
@@ -49,7 +48,7 @@ export async function onBreakStop(callback: (...args: any[]) => any): () => void
 }
 
 export function startBreak(ms: number) {
-  emitTo(OVERLAY_WINDOW_LABEL, START_BREAK_EVENT, ms)
+  emitTo(OVERLAY_WINDOW_LABEL, START_BREAK_EVENT, ms);
   showOverlay();
 }
 
@@ -58,4 +57,3 @@ export async function onBreakStart(callback: (...args: any[]) => any): Promise<(
     callback(event.payload);
   });
 }
-

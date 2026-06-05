@@ -13,7 +13,7 @@
   "app": {
     "windows": [
       {
-        "label": "main", 
+        "label": "main",
         "title": "Blinker",
         "width": 1200,
         "height": 700,
