@@ -1,0 +1,17 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="128" cy="128" r="128" fill="#5E2EAC"/>
+<ellipse cx="128" cy="128" rx="79.0048" ry="79.2381" fill="#3A1D6C"/>
+<mask id="mask0_6_39" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="82" y="81" width="159" height="160">
+<ellipse cx="161.072" cy="160.914" rx="79.0048" ry="79.2381" fill="#712E2E"/>
+</mask>
+<g mask="url(#mask0_6_39)">
+</g>
+<mask id="mask1_6_39" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
+<circle cx="128" cy="128" r="128" fill="white"/>
+</mask>
+<g mask="url(#mask1_6_39)">
+<ellipse cx="124.325" cy="243.81" rx="207.617" ry="128" fill="#B3A7D0"/>
+<circle cx="128" cy="276.724" r="128" fill="#FFEFEF"/>
+</g>
+<path d="M187 61C187 74.8071 175.583 86 161.5 86C147.417 86 136 74.8071 136 61C136 47.1929 147.417 36 161.5 36C175.583 36 187 47.1929 187 61Z" fill="#EFEFEF"/>
+</svg>

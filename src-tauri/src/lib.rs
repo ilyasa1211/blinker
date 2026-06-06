@@ -25,7 +25,7 @@ pub fn run() {
             #[cfg(target_os = "linux")]
             {
                 use tauri::Manager;
-                use webkit2gtk::{WebViewExt, SettingsExt, PermissionRequestExt};
+                use webkit2gtk::{WebViewExt, PermissionRequestExt};
 
                 let window = app.get_webview_window("main").unwrap();
                 window.with_webview(|webview| {

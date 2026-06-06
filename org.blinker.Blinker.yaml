@@ -1,0 +1,33 @@
+id: com.blinker.Blinker
+runtime: org.gnome.Platform
+runtime-version: '50'
+sdk: org.gnome.Sdk
+command: blinker
+finish-args:
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  - --share=ipc
+  # - --share=network
+
+modules:
+  - name: blinker
+    buildsystem: simple
+    build-commands:
+      # 1. Install the executable binary
+      - install -Dm755 blinker /app/bin/blinker
+
+      # 2. Install Desktop file and AppStream metadata
+      # - install -Dm644 com.blinker.Blinker.desktop /app/share/applications/com.blinker.Blinker.desktop
+      # - install -Dm644 com.blinker.Blinker.metainfo.xml /app/share/metainfo/com.blinker.Blinker.metainfo.xml
+
+      # 3. Install the application icon (Tauri generates a 512x512 png by default)
+      # - install -Dm644 icon.png /app/share/icons/hicolor/512x512/apps/com.blinker.Blinker.png
+    sources:
+      - type: file
+        path: src-tauri/target/release/blinker
+      # - type: file
+      #   path: com.blinker.Blinker.desktop
+      # - type: file
+      #   path: src-tauri/icons/128x128.png
+      #   dest-filename: icon.png

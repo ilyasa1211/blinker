@@ -10,7 +10,7 @@ import { state } from "../state.js";
 const activeSession = ref<boolean>(false);
 const activeCamera = ref<boolean>(false);
 
-const timeoutId = ref<number | undefined | NodeJS.Timeout>(undefined);
+const timeoutId = ref<number | undefined>(undefined);
 const isEyesCloseRef = ref<boolean>(false);
 
 const blinkCount = ref<number>(0);

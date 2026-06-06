@@ -6,8 +6,6 @@ const appWebview = getCurrentWebviewWindow();
 const OVERLAY_WINDOW_LABEL = "overlay";
 const START_BREAK_EVENT = "break:start";
 const STOP_BREAK_EVENT = "break:stop";
-const SHOW_OVERLAY_EVENT = "overlay:show";
-const HIDE_OVERLAY_EVENT = "overlay:hide";
 
 async function getOverlayWindow() {
   const window = await WebviewWindow.getByLabel(OVERLAY_WINDOW_LABEL);
@@ -41,7 +39,7 @@ export function stopBreak() {
   hideOverlay();
 }
 
-export async function onBreakStop(callback: (...args: any[]) => any): () => void {
+export async function onBreakStop(callback: (...args: any[]) => any): Promise<() => void> {
   return appWebview.listen<void>(STOP_BREAK_EVENT, (event) => {
     callback(event.payload);
   });

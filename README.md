@@ -1,7 +1,7 @@
 # Blinker
 
 <p align="center">
-  <img width="128" height="128" alt="icon" src="./build/icon.png" />
+  <img width="128" height="128" alt="icon" src="./app-icon.svg" />
 </p>
 
 <p align="center">
@@ -45,14 +45,15 @@ $ npm run dev
 ### Build
 
 ```bash
-# For windows
-$ npm run build:win
+$ npm run tauri build
+```
 
-# For macOS
-$ npm run build:mac
+## Developer Note
 
-# For Linux
-$ npm run build:linux
+To automatically build the icons from a specific file:
+
+```bash
+npm run tauri icon app-icon.svg
 ```
 
 ## FAQ
