@@ -26,14 +26,31 @@ Too focused doing your job and forget to blink? that's bad for your eyes, fortun
 
 ## Todo 
 
+- Fix full white box in the camera selection element and other.
+- Use UI library like Shadcn/Radix for easy customize and mantain.
 - If the user doesn’t have camera, it should have another method for reminding the user to blink, such as interval timer
+
+## Downloads
+
+### Binary (tar.xz / tar.gz) (soon)
+
+### AppImage (soon)
+
+### RPM/DEB package (soon)
+
+### Flatpak (soon)
 
 ## Project Setup
 
-### Install
+### Install dependencies
+
+Install Rust & Cargo
+Install Node & Npm
+
+Install Node dependencie:
 
 ```bash
-$ npm install
+$ npm ci
 ```
 
 ### Development
@@ -44,8 +61,26 @@ $ npm run dev
 
 ### Build
 
+```bash 
+npm ci
+npm run tauri build
+```
+
+Build binary only
+
 ```bash
-$ npm run tauri build
+npm ci
+npm run tauri build -- --no-bundle
+```
+
+Build flatpak and run flatpak (manually)
+
+```bash
+npm ci 
+npm run tauri build -- --no-bundle
+flatpak-builder --repo=repo --force-clean build-dir/ org.blinker.Blinker.yaml
+flatpak --user install ./repo org.blinker.Blinker -y
+flatpak run org.blinker.Blinker
 ```
 
 ## Developer Note
