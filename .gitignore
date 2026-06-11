@@ -26,3 +26,4 @@ dist-ssr
 build-dir/
 repo/
 .flatpak-builder/
+*.tar.xz

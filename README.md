@@ -1,11 +1,11 @@
 # Blinker
 
 <p align="center">
-  <img width="128" height="128" alt="icon" src="./app-icon.svg" />
+  <img width="128" height="128" alt="icon" src="./icon.svg" />
 </p>
 
 <p align="center">
- <img src="https://github.com/ilyasa1211/blinker/actions/workflows/build.yaml/badge.svg" />
+ <img src="https://github.com/up9t/blinker/actions/workflows/build.yaml/badge.svg" />
 </p>
 
 Too focused doing your job and forget to blink? that's bad for your eyes, fortunately this application just do the right thing for you.
@@ -88,7 +88,7 @@ flatpak run org.blinker.Blinker
 To automatically build the icons from a specific file:
 
 ```bash
-npm run tauri icon app-icon.svg
+npm run tauri icon icon.svg
 ```
 
 ## FAQ

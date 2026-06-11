@@ -4,6 +4,7 @@ runtime-version: '50'
 sdk: org.gnome.Sdk
 command: blinker
 rename-icon: blinker
+rename-desktop-file: app.desktop
 finish-args:
   - --socket=wayland
   - --socket=fallback-x11
@@ -17,12 +18,12 @@ modules:
     build-commands:
       - install -Dm755 blinker /app/bin/blinker
     post-install:
-      - install -Dm644 ./org.blinker.Blinker.desktop ${FLATPAK_DEST}/share/applications/org.blinker.Blinker.desktop
-      - install -Dm644 ./app-icon.svg ${FLATPAK_DEST}/share/icons/hicolor/scalable/apps/blinker.svg
+      - install -Dm644 ./app.desktop ${FLATPAK_DEST}/share/applications/app.desktop
+      - install -Dm644 ./icon.svg ${FLATPAK_DEST}/share/icons/hicolor/scalable/apps/blinker.svg
     sources:
       - type: file
         path: src-tauri/target/release/blinker
       - type: file
-        path: ./app-icon.svg
+        path: ./icon.svg
       - type: file
-        path: ./org.blinker.Blinker.desktop
+        path: ./app.desktop
