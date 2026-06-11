@@ -99,7 +99,7 @@ jobs:
           LOOK_DIR: ./src-tauri/target/release
         run: |
           mkdir -p ${{ env.LOOK_DIR }}
-          tar -x --directory=${{ env.LOOK_DIR }} -f ${{ env.APP_NAME }} 
+          tar -x --directory=${{ env.LOOK_DIR }} -f ${{ env.APP_NAME }}.tar.xz
 
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
