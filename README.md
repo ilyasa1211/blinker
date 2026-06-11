@@ -32,13 +32,13 @@ Too focused doing your job and forget to blink? that's bad for your eyes, fortun
 
 ## Downloads
 
-### Binary (tar.xz / tar.gz) (soon)
+### Binary (tar.xz) (soon)
 
 ### AppImage (soon)
 
 ### RPM/DEB package (soon)
 
-### Flatpak (soon)
+- [flatpak](https://github.com/up9t/blinker/releases/latest/download/blinker.flatpak)
 
 ## Project Setup
 

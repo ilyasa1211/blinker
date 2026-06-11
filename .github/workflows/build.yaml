@@ -67,7 +67,7 @@ jobs:
           path: |
             ./sbom.json
             ./${{ env.APP_NAME }}.tar.xz
-            ./src-tauri/target/release/bundle/appimage/${{ env.APP_NAME }}.AppImage
+            ./src-tauri/target/release/bundle/appimage/${{ env.APP_NAME }}*.AppImage
             ./src-tauri/target/release/bundle/rpm/${{ env.APP_NAME }}*.rpm
             ./src-tauri/target/release/bundle/deb/${{ env.APP_NAME }}*.deb
 
