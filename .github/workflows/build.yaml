@@ -139,5 +139,5 @@ jobs:
       - name: GH Release
         uses: softprops/action-gh-release@v3
         with:
-          files: ${{ steps.download-artifact.outputs.download-path }}/*
+          files: ${{ steps.download-artifact.outputs.download-path }}/**/*
 
