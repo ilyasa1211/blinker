@@ -7,7 +7,6 @@ const progress = ref(0);
 const timeLeftMs = ref(0);
 const currentTime = ref("");
 
-// Computed to show seconds formatted nicely (e.g. 5s)
 const secondsRemaining = computed(() => Math.ceil(timeLeftMs.value / 1000));
 
 let timer: number;
@@ -20,7 +19,6 @@ function startCountdown(durationMs: number) {
     const elapsed = now - start;
     timeLeftMs.value = Math.max(durationMs - elapsed, 0);
 
-    // Smooth progress calculation
     progress.value = Math.min((elapsed / durationMs) * 100, 100);
 
     if (progress.value < 100) {
@@ -33,7 +31,6 @@ function startCountdown(durationMs: number) {
 
 function updateTime() {
   const now = new Date();
-  // Format to HH:mm (24-hour)
   currentTime.value = now.toLocaleTimeString([], {
     hour: "2-digit",
     minute: "2-digit",
@@ -46,7 +43,6 @@ let cancelBreakStop: null | (() => void) = null;
 
 onMounted(async () => {
   updateTime();
-  // Update every second to ensure the minute flip is accurate
   timer = window.setInterval(updateTime, 1000);
 
   cancelBreakStart = await onBreakStart((durationMs: number) => {

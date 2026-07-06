@@ -17,17 +17,16 @@
         "title": "Blinker",
         "width": 1200,
         "height": 700,
-        "url": "/",
-        "theme": "Dark"
+        "url": "/"
       },
       {
         "label": "overlay",
         "title": "Overlay",
         "fullscreen": true,
-        "resizable": false,
+        "resizable": true,
         "visible": false,
         "url": "/overlay",
-        "theme": "Dark"
+        "alwaysOnTop": true
       }
     ],
     "security": {

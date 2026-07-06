@@ -6,6 +6,7 @@ import { resizeCanvas } from "../common/utils.js";
 import { drawLandmark, setupLandmarker } from "../landmark.js";
 import { settings } from "../settings.js";
 import { state } from "../state.js";
+import { Button } from "@/components/ui/button";
 
 const activeSession = ref<boolean>(false);
 const activeCamera = ref<boolean>(false);
@@ -293,30 +294,16 @@ onUnmounted(async () => {
         </h2>
       </div>
       <div class="grid grid-cols-2 gap-4">
-        <button
-          @click="toggleCamera"
-          :class="
-            activeCamera
-              ? 'bg-rose-600 hover:bg-rose-500 shadow-rose-900/20'
-              : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-900/20'
-          "
-          class="w-full md:w-auto px-10 py-4 rounded-2xl font-bold text-lg transition-all active:scale-95 shadow-xl"
-        >
+        <Button @click="toggleCamera" :variant="activeCamera ? 'destructive' : 'default'">
           {{ activeCamera ? "Stop Camera" : "Start Camera" }}
-        </button>
-        <button
+        </Button>
+        <Button
           @click="toggleSession"
           :disabled="!activeCamera"
-          :class="[
-            activeSession
-              ? 'bg-rose-600 hover:bg-rose-500 shadow-rose-900/20'
-              : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-900/20',
-            !activeCamera ? 'opacity-30 cursor-not-allowed' : '',
-          ]"
-          class="w-full md:w-auto px-10 py-4 rounded-2xl font-bold text-lg transition-all active:scale-95 shadow-xl"
+          :variant="activeSession ? 'destructive' : 'default'"
         >
           {{ activeSession ? "Stop Session" : "Start Session" }}
-        </button>
+        </Button>
       </div>
     </div>
   </div>
