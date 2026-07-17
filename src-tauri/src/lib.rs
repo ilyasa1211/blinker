@@ -9,6 +9,7 @@ fn greet(name: &str) -> String {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![greet])
         .on_window_event(|window, event| {
@@ -25,7 +26,7 @@ pub fn run() {
             #[cfg(target_os = "linux")]
             {
                 use tauri::Manager;
-                use webkit2gtk::{WebViewExt, PermissionRequestExt};
+                use webkit2gtk::{PermissionRequestExt, WebViewExt};
 
                 let window = app.get_webview_window("main").unwrap();
                 window.with_webview(|webview| {

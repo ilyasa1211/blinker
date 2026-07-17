@@ -1,8 +1,6 @@
 import { emitTo } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow, WebviewWindow } from "@tauri-apps/api/webviewWindow";
 
-const appWebview = getCurrentWebviewWindow();
-
 const OVERLAY_WINDOW_LABEL = "overlay";
 const START_BREAK_EVENT = "break:start";
 const STOP_BREAK_EVENT = "break:stop";
@@ -40,6 +38,8 @@ export function stopBreak() {
 }
 
 export async function onBreakStop(callback: (...args: any[]) => any): Promise<() => void> {
+  const appWebview = getCurrentWebviewWindow();
+
   return appWebview.listen<void>(STOP_BREAK_EVENT, (event) => {
     callback(event.payload);
   });
@@ -51,6 +51,8 @@ export function startBreak(ms: number) {
 }
 
 export async function onBreakStart(callback: (...args: any[]) => any): Promise<() => void> {
+  const appWebview = getCurrentWebviewWindow();
+
   return appWebview.listen<number>(START_BREAK_EVENT, (event) => {
     callback(event.payload);
   });

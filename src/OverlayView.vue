@@ -6,9 +6,18 @@ const isBreak = ref<boolean>(false);
 const progress = ref(0);
 const timeLeftMs = ref(0);
 const currentTime = ref("");
+const messages = ["Rest your eyes", "Stay hydrated"];
 
-// Computed to show seconds formatted nicely (e.g. 5s)
 const secondsRemaining = computed(() => Math.ceil(timeLeftMs.value / 1000));
+const message = computed(() =>
+  isBreak.value ? messages[getRandomIntInclusive(0, messages.length - 1)] : "Not a break",
+);
+
+function getRandomIntInclusive(min: number, max: number) {
+  const minCeiled = Math.ceil(min);
+  const maxFloored = Math.floor(max);
+  return Math.floor(Math.random() * (maxFloored - minCeiled + 1)) + minCeiled;
+}
 
 let timer: number;
 
@@ -20,7 +29,6 @@ function startCountdown(durationMs: number) {
     const elapsed = now - start;
     timeLeftMs.value = Math.max(durationMs - elapsed, 0);
 
-    // Smooth progress calculation
     progress.value = Math.min((elapsed / durationMs) * 100, 100);
 
     if (progress.value < 100) {
@@ -33,7 +41,6 @@ function startCountdown(durationMs: number) {
 
 function updateTime() {
   const now = new Date();
-  // Format to HH:mm (24-hour)
   currentTime.value = now.toLocaleTimeString([], {
     hour: "2-digit",
     minute: "2-digit",
@@ -46,7 +53,6 @@ let cancelBreakStop: null | (() => void) = null;
 
 onMounted(async () => {
   updateTime();
-  // Update every second to ensure the minute flip is accurate
   timer = window.setInterval(updateTime, 1000);
 
   cancelBreakStart = await onBreakStart((durationMs: number) => {
@@ -93,8 +99,10 @@ onUnmounted(() => {
             >
               Take a break
             </h1>
-            <p class="text-indigo-400/60 text-xl md:text-2xl font-light tracking-[0.4em] uppercase">
-              Rest your eyes
+            <p
+              class="text-indigo-400/60 text-xl md:text-3xl font-medium tracking-[0.4em] uppercase"
+            >
+              {{ message }}
             </p>
           </div>
 
