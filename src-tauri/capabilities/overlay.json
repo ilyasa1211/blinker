@@ -3,5 +3,10 @@
   "identifier": "overlay-cap",
   "description": "Capability for the overlay window",
   "windows": ["overlay"],
-  "permissions": ["core:event:allow-listen"]
+  "permissions": [
+    "core:event:allow-listen",
+    "core:window:allow-get-all-windows",
+    "core:window:allow-show",
+    "core:window:allow-set-focus"
+  ]
 }
