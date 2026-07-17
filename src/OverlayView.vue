@@ -6,8 +6,18 @@ const isBreak = ref<boolean>(false);
 const progress = ref(0);
 const timeLeftMs = ref(0);
 const currentTime = ref("");
+const messages = ["Rest your eyes", "Stay hydrated"];
 
 const secondsRemaining = computed(() => Math.ceil(timeLeftMs.value / 1000));
+const message = computed(() =>
+  isBreak.value ? messages[getRandomIntInclusive(0, messages.length - 1)] : "Not a break",
+);
+
+function getRandomIntInclusive(min: number, max: number) {
+  const minCeiled = Math.ceil(min);
+  const maxFloored = Math.floor(max);
+  return Math.floor(Math.random() * (maxFloored - minCeiled + 1)) + minCeiled;
+}
 
 let timer: number;
 
@@ -89,8 +99,10 @@ onUnmounted(() => {
             >
               Take a break
             </h1>
-            <p class="text-indigo-400/60 text-xl md:text-2xl font-light tracking-[0.4em] uppercase">
-              Rest your eyes
+            <p
+              class="text-indigo-400/60 text-xl md:text-3xl font-medium tracking-[0.4em] uppercase"
+            >
+              {{ message }}
             </p>
           </div>
 

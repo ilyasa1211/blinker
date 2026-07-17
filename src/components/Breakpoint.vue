@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { watch } from "vue";
+import { onMounted, onUnmounted, watch } from "vue";
 import audioSrc from "../assets/sounds/solemn-522.ogg";
 import { startBreak as callBreak, stopBreak as callStopBreak } from "../common/api.js";
 import type { Breakpoint } from "../common/types.js";
 import { getRandomId, toMs } from "../common/utils.js";
 import { settings } from "../settings.js";
 import { state } from "../state.js";
+import { permissionGranted, showNotification } from "@/lib/notification.js";
 
 const breakIntervals = new Map<string, number>();
 const notificationIntervals = new Map<string, number>();
@@ -21,9 +22,10 @@ function addBreakpoint() {
 }
 
 function showBreakNotification(sec: number) {
-  new Notification("Break is coming!", {
-    body: `Break in ${sec}s`,
-  });
+  const title = "Break is coming!";
+  const body = `Break in ${sec}s`;
+
+  showNotification(title, body);
 }
 
 function removeBreakpoint(index: number) {
@@ -126,6 +128,19 @@ watch(
   },
   { deep: true, immediate: true },
 );
+onMounted(async () => {
+  const isGranted = await permissionGranted();
+
+  if (!isGranted) {
+    console.error("Failed to have notification permission");
+  }
+});
+
+onUnmounted(() => {
+  for (const bp of state.breakpoints) {
+    stopBreakpoint(bp.id);
+  }
+});
 </script>
 
 <template>
