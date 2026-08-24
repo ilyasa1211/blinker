@@ -21,6 +21,7 @@ export async function showOverlay() {
   if (overlay) {
     await overlay.show();
     await overlay.setFocus();
+    await overlay.setAlwaysOnTop(true);
   }
 }
 
