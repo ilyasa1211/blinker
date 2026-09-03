@@ -238,12 +238,23 @@ onUnmounted(async () => {
           <p class="text-sm tracking-widest uppercase">Video Feed Canvas</p>
         </div>
 
-        <video ref="videoElement" class="absolute inset-0 w-full h-full object-cover invisible" autoplay muted
-          playsinline></video>
+        <video
+          ref="videoElement"
+          class="absolute inset-0 w-full h-full object-cover invisible"
+          autoplay
+          muted
+          playsinline
+        ></video>
 
-        <canvas ref="gpuCanvasElement" class="absolute inset-0 w-full h-full object-cover z-10 mirror"></canvas>
+        <canvas
+          ref="gpuCanvasElement"
+          class="absolute inset-0 w-full h-full object-cover z-10 mirror"
+        ></canvas>
 
-        <canvas ref="canvasElement" class="absolute inset-0 w-full h-full object-cover z-10 mirror"></canvas>
+        <canvas
+          ref="canvasElement"
+          class="absolute inset-0 w-full h-full object-cover z-10 mirror"
+        ></canvas>
 
         <Button
           variant="ghost"
@@ -262,7 +273,11 @@ onUnmounted(async () => {
         <CardTitle>Device Settings</CardTitle>
       </CardHeader>
       <CardContent>
-        <DeviceSelector v-model="selectedDeviceId" :devices="devices" @change="handleCameraChange" />
+        <DeviceSelector
+          v-model="selectedDeviceId"
+          :devices="devices"
+          @change="handleCameraChange"
+        />
       </CardContent>
     </Card>
   </div>

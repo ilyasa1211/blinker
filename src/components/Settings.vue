@@ -51,10 +51,7 @@ async function handleReset() {
   applyTheme(freshSettings.theme);
   setStoredTheme(freshSettings.theme);
   showResetDialog.value = false;
-  showNotification(
-    "Settings Reset",
-    "All settings have been restored to their default values."
-  );
+  showNotification("Settings Reset", "All settings have been restored to their default values.");
 }
 </script>
 
@@ -72,12 +69,16 @@ async function handleReset() {
             <AlertDialogHeader>
               <AlertDialogTitle>Reset Settings to Default?</AlertDialogTitle>
               <AlertDialogDescription>
-                This action will restore all settings to their default values. This cannot be undone.
+                This action will restore all settings to their default values. This cannot be
+                undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <div class="flex gap-3 justify-end">
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction @click="handleReset" class="bg-destructive hover:bg-destructive/90">
+              <AlertDialogAction
+                @click="handleReset"
+                class="bg-destructive hover:bg-destructive/90"
+              >
                 Reset
               </AlertDialogAction>
             </div>
@@ -110,7 +111,7 @@ async function handleReset() {
               id="blink-timeout"
               type="number"
               :model-value="settings.blinkTimeout"
-              @update:model-value="(v) => settings.blinkTimeout = Number(v)"
+              @update:model-value="(v) => (settings.blinkTimeout = Number(v))"
               min="0.2"
               max="2"
               step="0.1"
@@ -123,7 +124,7 @@ async function handleReset() {
               id="notify-before"
               type="number"
               :model-value="settings.notifyBeforeSecond"
-              @update:model-value="(v) => settings.notifyBeforeSecond = Number(v)"
+              @update:model-value="(v) => (settings.notifyBeforeSecond = Number(v))"
               min="5"
               max="300"
               step="1"
@@ -136,7 +137,7 @@ async function handleReset() {
               id="eyes-closed"
               type="number"
               :model-value="settings.thresholdEyesClosed"
-              @update:model-value="(v) => settings.thresholdEyesClosed = Number(v)"
+              @update:model-value="(v) => (settings.thresholdEyesClosed = Number(v))"
               :min="settings.thresholdEyesOpened"
               max="1"
               step="0.05"
@@ -149,7 +150,7 @@ async function handleReset() {
               id="eyes-opened"
               type="number"
               :model-value="settings.thresholdEyesOpened"
-              @update:model-value="(v) => settings.thresholdEyesOpened = Number(v)"
+              @update:model-value="(v) => (settings.thresholdEyesOpened = Number(v))"
               min="0.2"
               :max="settings.thresholdEyesClosed"
               step="0.05"
@@ -158,9 +159,7 @@ async function handleReset() {
         </div>
 
         <label class="flex items-center gap-2 cursor-pointer select-none">
-          <Checkbox
-            v-model:model-value="settings.autoStartSession"
-          />
+          <Checkbox v-model:model-value="settings.autoStartSession" />
           <span class="text-xs text-muted-foreground">Auto-start session on launch</span>
         </label>
       </div>

@@ -29,12 +29,7 @@ const emit = defineEmits<{
         :model-value="breakpoint.enabled"
         @update:model-value="(v: boolean) => emit('update:enabled', v)"
       />
-      <Button
-        @click="emit('delete', index)"
-        variant="destructive"
-        size="icon"
-        class="h-7 w-7"
-      >
+      <Button @click="emit('delete', index)" variant="destructive" size="icon" class="h-7 w-7">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="h-3 w-3"
