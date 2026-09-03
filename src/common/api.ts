@@ -1,9 +1,14 @@
 import { emitTo } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow, WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { LazyStore } from "@tauri-apps/plugin-store";
 
 const OVERLAY_WINDOW_LABEL = "overlay";
 const START_BREAK_EVENT = "break:start";
 const STOP_BREAK_EVENT = "break:stop";
+
+export function getStore() {
+  return new LazyStore("settings.json");
+}
 
 async function getOverlayWindow() {
   const window = await WebviewWindow.getByLabel(OVERLAY_WINDOW_LABEL);
@@ -21,6 +26,7 @@ export async function showOverlay() {
   if (overlay) {
     await overlay.show();
     await overlay.setFocus();
+    await overlay.setAlwaysOnTop(true);
   }
 }
 

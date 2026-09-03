@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import type { FaceLandmarker } from "@mediapipe/tasks-vision";
-import { onMounted, onUnmounted, ref } from "vue";
+import { onMounted, onUnmounted, ref, reactive } from "vue";
 import { hideOverlay, showOverlay } from "../common/api.js";
 import { resizeCanvas } from "../common/utils.js";
 import { drawLandmark, setupLandmarker } from "../landmark.js";
-import { settings } from "../settings.js";
-import { state } from "../state.js";
-import { Button } from "@/components/ui/button";
+import { defaultSettings as settings } from "../settings.js";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import CameraStatusBadge from "./CameraStatusBadge.vue";
+import DeviceSelector from "./DeviceSelector.vue";
+import CameraControlPanel from "./CameraControlPanel.vue";
 
-const activeSession = ref<boolean>(false);
-const activeCamera = ref<boolean>(false);
+const state = reactive({ isBreak: false });
+
+const isRunning = ref<boolean>(false);
 
 const timeoutId = ref<number | undefined>(undefined);
 const isEyesCloseRef = ref<boolean>(false);
@@ -26,22 +29,24 @@ const canvasElement = ref<HTMLCanvasElement | null>(null);
 const gpuCanvasElement = ref<HTMLCanvasElement | null>(null);
 let requestAnimationFrameId: number | undefined;
 let faceLandmarker: FaceLandmarker | undefined;
+let autoStarted = false;
 
 function stopSession() {
   hideOverlay();
   removeTimeout();
-  activeSession.value = false;
+  isRunning.value = false;
 }
 
 function startSession() {
   resetTimeout(showOverlay);
-  activeSession.value = true;
 }
 
-function toggleSession() {
-  if (activeSession.value) {
+function toggleRunning() {
+  if (isRunning.value) {
     stopSession();
+    stopCamera();
   } else {
+    startCamera();
     startSession();
   }
 }
@@ -52,7 +57,7 @@ function handleEyesClose() {
     incrementBlinkCounter();
   }
 
-  if (!activeSession.value || state.isBreak) return;
+  if (!isRunning.value || state.isBreak) return;
 
   hideOverlay();
   removeTimeout();
@@ -62,7 +67,7 @@ function handleEyesOpen() {
   if (isEyesCloseRef.value) {
     isEyesCloseRef.value = false;
 
-    if (!activeSession.value || state.isBreak) return;
+    if (!isRunning.value || state.isBreak) return;
 
     resetTimeout(showOverlay);
   }
@@ -143,7 +148,7 @@ async function startCamera() {
 
   if (!videoElement.value) throw new Error("video element is undefined");
 
-  activeCamera.value = true;
+  isRunning.value = true;
   videoElement.value.srcObject = stream;
   videoElement.value.addEventListener("loadeddata", predictWebcam);
   // active.value = true;
@@ -157,10 +162,7 @@ function stopCamera() {
   if (!stream) return;
 
   stream.getTracks().forEach((track) => track.stop());
-  activeCamera.value = false;
   videoElement.value.srcObject = null;
-  activeCamera.value = false;
-  stopSession();
 }
 
 async function getCameras() {
@@ -170,14 +172,6 @@ async function getCameras() {
 
   if (devices.value.length > 0) {
     selectedDeviceId.value = devices.value[0].deviceId;
-  }
-}
-
-async function toggleCamera() {
-  if (activeCamera.value) {
-    stopCamera();
-  } else {
-    await startCamera();
   }
 }
 
@@ -199,6 +193,16 @@ onMounted(async () => {
   // await startCamera();
 
   video?.addEventListener("loadeddata", predictWebcam);
+
+  if (!autoStarted && settings.autoStartSession && !isRunning.value) {
+    autoStarted = true;
+    try {
+      await startCamera();
+      startSession();
+    } catch (e) {
+      console.error("Auto-start failed:", e);
+    }
+  }
 });
 
 onUnmounted(async () => {
@@ -214,98 +218,36 @@ onUnmounted(async () => {
 </script>
 <template>
   <div class="lg:col-span-8 space-y-6">
-    <div
-      class="relative bg-slate-900 rounded-3xl overflow-hidden aspect-video border border-slate-700 shadow-2xl flex items-center justify-center"
-    >
-      <div class="text-slate-600 text-center">
-        <div class="text-6xl mb-4">🎭</div>
-        <p class="text-sm tracking-widest uppercase">Video Feed Canvas</p>
-      </div>
-
-      <video
-        ref="videoElement"
-        class="absolute inset-0 w-full h-full object-cover invisible"
-        autoplay
-        muted
-        playsinline
-      ></video>
-
-      <canvas
-        ref="gpuCanvasElement"
-        class="absolute inset-0 w-full h-full object-cover z-10 mirror"
-      ></canvas>
-
-      <canvas
-        ref="canvasElement"
-        class="absolute inset-0 w-full h-full object-cover z-10 mirror"
-      ></canvas>
-
-      <div class="absolute top-5 left-5 z-10">
-        <div
-          :class="
-            activeCamera
-              ? 'bg-green-500/20 text-green-400 border-green-500/50'
-              : 'bg-red-500/20 text-red-400 border-red-500/50'
-          "
-          class="px-4 py-1.5 rounded-full border backdrop-blur-md text-sm font-bold flex items-center gap-2"
-        >
-          <span class="relative flex h-2 w-2">
-            <span
-              v-if="activeCamera"
-              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"
-            ></span>
-            <span
-              class="relative inline-flex rounded-full h-2 w-2"
-              :class="activeCamera ? 'bg-green-500' : 'bg-red-500'"
-            ></span>
-          </span>
-          {{ activeCamera ? "LIVE TRACKING" : "SYSTEM PAUSED" }}
+    <Card class="aspect-video relative">
+      <CardHeader>
+        <CameraStatusBadge :is-active="isRunning" />
+      </CardHeader>
+      <CardContent>
+        <div class="text-muted-foreground text-center">
+          <div class="text-6xl mb-4">🎭</div>
+          <p class="text-sm tracking-widest uppercase">Video Feed Canvas</p>
         </div>
-      </div>
-    </div>
 
-    <div class="bg-slate-800/50 border border-slate-700 p-6 rounded-3xl">
-      <h3 class="text-indigo-400 font-bold uppercase text-xs tracking-widest mb-6">
-        Device Settings
-      </h3>
-      <div class="space-y-4">
-        <label class="block text-sm font-medium text-slate-400 mb-2">Select Input Source</label>
-        <select
-          v-model="selectedDeviceId"
-          @change="handleCameraChange"
-          class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none transition"
-        >
-          <option v-for="device in devices" :key="device.deviceId" :value="device.deviceId">
-            {{ device.label || `Camera ${devices.indexOf(device) + 1}` }}
-          </option>
-        </select>
-      </div>
-    </div>
+        <video ref="videoElement" class="absolute inset-0 w-full h-full object-cover invisible" autoplay muted
+          playsinline></video>
 
-    <div
-      class="bg-slate-800/50 border border-slate-700 p-8 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-6"
-    >
-      <div class="text-center md:text-left">
-        <p class="text-slate-400 text-xs uppercase tracking-[0.2em] font-bold mb-1">
-          Total Blinks Detected
-        </p>
-        <h2 :key="blinkCount" class="text-7xl font-black text-white tabular-nums">
-          {{ blinkCount }}
-        </h2>
-      </div>
-      <div class="grid grid-cols-2 gap-4">
-        <Button @click="toggleCamera" :variant="activeCamera ? 'destructive' : 'default'">
-          {{ activeCamera ? "Stop Camera" : "Start Camera" }}
-        </Button>
-        <Button
-          @click="toggleSession"
-          :disabled="!activeCamera"
-          :variant="activeSession ? 'destructive' : 'default'"
-        >
-          {{ activeSession ? "Stop Session" : "Start Session" }}
-        </Button>
-      </div>
-    </div>
+        <canvas ref="gpuCanvasElement" class="absolute inset-0 w-full h-full object-cover z-10 mirror"></canvas>
+
+        <canvas ref="canvasElement" class="absolute inset-0 w-full h-full object-cover z-10 mirror"></canvas>
+      </CardContent>
+    </Card>
+
+    <Card>
+      <CardHeader>
+        <CardTitle>Device Settings</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <DeviceSelector v-model="selectedDeviceId" :devices="devices" @change="handleCameraChange" />
+      </CardContent>
+    </Card>
+
+    <CameraControlPanel :blink-count="blinkCount" :is-session-active="isRunning"
+      @toggle-session="toggleRunning" />
   </div>
 </template>
 

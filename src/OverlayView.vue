@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from "vue";
-import { onBreakStart, onBreakStop } from "./common/api.ts";
+import { onBreakStart, onBreakStop, showOverlay } from "./common/api.ts";
 
 const isBreak = ref<boolean>(false);
 const progress = ref(0);
@@ -53,7 +53,12 @@ let cancelBreakStop: null | (() => void) = null;
 
 onMounted(async () => {
   updateTime();
-  timer = window.setInterval(updateTime, 1000);
+  timer = window.setInterval(() => {
+    updateTime();
+    if (isBreak.value) {
+      showOverlay(); // set focus
+    }
+  }, 1000);
 
   cancelBreakStart = await onBreakStart((durationMs: number) => {
     isBreak.value = true;
