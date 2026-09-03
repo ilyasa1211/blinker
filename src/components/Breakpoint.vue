@@ -166,7 +166,7 @@ onUnmounted(() => {
         <CardTitle>Breakpoints</CardTitle>
         <div class="flex items-center gap-3">
           <Switch
-            v-model:checked="allEnabled"
+            v-model:model-value="allEnabled"
           />
           <Button
             @click="addBreakpoint"

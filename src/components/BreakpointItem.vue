@@ -26,8 +26,8 @@ const emit = defineEmits<{
   <Card class="p-3 space-y-2" :class="{ 'opacity-60': !breakpoint.enabled }">
     <div class="flex items-center justify-between">
       <Switch
-        :checked="breakpoint.enabled"
-        @update:checked="(v: boolean) => emit('update:enabled', v)"
+        :model-value="breakpoint.enabled"
+        @update:model-value="(v: boolean) => emit('update:enabled', v)"
       />
       <Button
         @click="emit('delete', index)"

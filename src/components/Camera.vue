@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import type { FaceLandmarker } from "@mediapipe/tasks-vision";
 import { onMounted, onUnmounted, ref, reactive } from "vue";
+import { Play, Pause } from "@lucide/vue";
 import { hideOverlay, showOverlay } from "../common/api.js";
 import { resizeCanvas } from "../common/utils.js";
 import { drawLandmark, setupLandmarker } from "../landmark.js";
 import { defaultSettings as settings } from "../settings.js";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CameraStatusBadge from "./CameraStatusBadge.vue";
 import DeviceSelector from "./DeviceSelector.vue";
-import CameraControlPanel from "./CameraControlPanel.vue";
 
 const state = reactive({ isBreak: false });
 
@@ -216,11 +217,20 @@ onUnmounted(async () => {
   }
 });
 </script>
+
 <template>
   <div class="lg:col-span-8 space-y-6">
     <Card class="aspect-video relative">
       <CardHeader>
-        <CameraStatusBadge :is-active="isRunning" />
+        <div class="flex justify-between items-center">
+          <CameraStatusBadge :is-active="isRunning" />
+          <div class="text-right">
+            <p class="text-muted-foreground text-xs uppercase tracking-[0.2em] font-bold mb-1">
+              Total Blinks Detected
+            </p>
+            <p class="text-2xl font-black text-foreground tabular-nums">{{ blinkCount }}</p>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div class="text-muted-foreground text-center">
@@ -234,6 +244,16 @@ onUnmounted(async () => {
         <canvas ref="gpuCanvasElement" class="absolute inset-0 w-full h-full object-cover z-10 mirror"></canvas>
 
         <canvas ref="canvasElement" class="absolute inset-0 w-full h-full object-cover z-10 mirror"></canvas>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          class="absolute inset-0 m-auto size-16 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm z-20"
+          @click="toggleRunning"
+        >
+          <Play v-if="!isRunning" class="size-8" />
+          <Pause v-else class="size-8" />
+        </Button>
       </CardContent>
     </Card>
 
@@ -245,9 +265,6 @@ onUnmounted(async () => {
         <DeviceSelector v-model="selectedDeviceId" :devices="devices" @change="handleCameraChange" />
       </CardContent>
     </Card>
-
-    <CameraControlPanel :blink-count="blinkCount" :is-session-active="isRunning"
-      @toggle-session="toggleRunning" />
   </div>
 </template>
 

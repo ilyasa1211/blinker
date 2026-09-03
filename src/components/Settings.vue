@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -155,6 +156,13 @@ async function handleReset() {
             />
           </div>
         </div>
+
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+          <Checkbox
+            v-model:model-value="settings.autoStartSession"
+          />
+          <span class="text-xs text-muted-foreground">Auto-start session on launch</span>
+        </label>
       </div>
     </div>
   </Card>
