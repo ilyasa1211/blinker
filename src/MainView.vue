@@ -13,7 +13,7 @@ const selectedDeviceIdRef = ref("");
     <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
       <div class="lg:col-span-8 space-y-6">
         <Camera :selected-device-id="selectedDeviceIdRef" />
-        <DeviceSelector @device-change="(value) => selectedDeviceIdRef = value" />
+        <DeviceSelector @device-change="(value) => (selectedDeviceIdRef = value)" />
       </div>
 
       <div class="lg:col-span-4 space-y-6">

@@ -14,7 +14,6 @@ const emit = defineEmits<{
   (e: "deviceChange", value: string): void;
 }>();
 
-
 const devicesRef = ref<MediaDeviceInfo[]>([]);
 const selectedValue = ref<string>("");
 
@@ -34,7 +33,7 @@ async function getCameras() {
 
 async function requestCameraPermission() {
   const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-  stream.getVideoTracks().forEach(t => t.stop());
+  stream.getVideoTracks().forEach((t) => t.stop());
 }
 
 onMounted(async () => {
@@ -45,28 +44,27 @@ onMounted(async () => {
     handleValueChange(devicesRef.value[0].deviceId);
   }
 });
-
 </script>
 
 <template>
   <!-- <div class="flex flex-col gap-3"> -->
-    <Card>
-      <CardHeader>
-        <CardTitle>Device Settings</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Label for="camera-device">Camera Device</Label>
-        <Select :model-value="selectedValue" @update:model-value="handleValueChange">
-          <SelectTrigger id="camera-device">
-            <SelectValue :placeholder="`Camera (${devicesRef.length} found)`" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="device in devicesRef" :key="device.deviceId" :value="device.deviceId">
-              {{ device.label || `Camera ${device.deviceId.slice(0, 5)}` }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </CardContent>
-    </Card>
+  <Card>
+    <CardHeader>
+      <CardTitle>Device Settings</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <Label for="camera-device">Camera Device</Label>
+      <Select :model-value="selectedValue" @update:model-value="handleValueChange">
+        <SelectTrigger id="camera-device">
+          <SelectValue :placeholder="`Camera (${devicesRef.length} found)`" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem v-for="device in devicesRef" :key="device.deviceId" :value="device.deviceId">
+            {{ device.label || `Camera ${device.deviceId.slice(0, 5)}` }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
+    </CardContent>
+  </Card>
   <!-- </div> -->
 </template>

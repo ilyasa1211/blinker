@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import CameraStatusBadge from "./CameraStatusBadge.vue";
 
 const props = defineProps<{
-  selectedDeviceId: string,
+  selectedDeviceId: string;
 }>();
 
 const isBreakRef = ref(false);
@@ -27,17 +27,20 @@ let lastVideoTime = -1;
 let requestAnimationFrameId: number | undefined;
 let faceLandmarker: FaceLandmarker | undefined;
 
-watch(() => props.selectedDeviceId, async (newID) => {
-  console.log("CHANGED HAHA", newID)
-  if (newID && settings.autoStartSession && !isRunningRef.value) {
-    try {
-      await startCamera(newID);
-      startSession();
-    } catch (e) {
-      console.error("Auto-start failed:", e);
+watch(
+  () => props.selectedDeviceId,
+  async (newID) => {
+    console.log("CHANGED HAHA", newID);
+    if (newID && settings.autoStartSession && !isRunningRef.value) {
+      try {
+        await startCamera(newID);
+        startSession();
+      } catch (e) {
+        console.error("Auto-start failed:", e);
+      }
     }
-  }
-});
+  },
+);
 
 function stopSession() {
   hideOverlay();
@@ -142,13 +145,13 @@ function predictWebcam() {
 }
 
 async function startCamera(deviceId: string) {
-  const stream = await navigator.mediaDevices
+  const stream = (await navigator.mediaDevices
     .getUserMedia({
       video: {
-        deviceId
+        deviceId,
       },
     })
-    .catch((err) => err) as MediaStream | Error;
+    .catch((err) => err)) as MediaStream | Error;
 
   if (stream instanceof Error) {
     console.error(stream);
@@ -200,43 +203,43 @@ onUnmounted(async () => {
 </script>
 
 <template>
-    <Card class="aspect-video relative">
-      <CardHeader>
-        <div class="flex justify-between items-center">
-          <CameraStatusBadge :is-active="isRunningRef" />
-          <div class="text-right">
-            <p class="text-muted-foreground text-xs uppercase tracking-[0.2em] font-bold mb-1">
-              Total Blinks Detected
-            </p>
-            <p class="text-2xl font-black text-foreground tabular-nums">{{ blinkCountRef }}</p>
-          </div>
+  <Card class="aspect-video relative">
+    <CardHeader>
+      <div class="flex justify-between items-center">
+        <CameraStatusBadge :is-active="isRunningRef" />
+        <div class="text-right">
+          <p class="text-muted-foreground text-xs uppercase tracking-[0.2em] font-bold mb-1">
+            Total Blinks Detected
+          </p>
+          <p class="text-2xl font-black text-foreground tabular-nums">{{ blinkCountRef }}</p>
         </div>
-      </CardHeader>
-      <CardContent>
-        <video
-          ref="videoElement"
-          class="absolute inset-0 w-full h-full object-cover invisible"
-          autoplay
-          muted
-          playsinline
-        ></video>
+      </div>
+    </CardHeader>
+    <CardContent>
+      <video
+        ref="videoElement"
+        class="absolute inset-0 w-full h-full object-cover invisible"
+        autoplay
+        muted
+        playsinline
+      ></video>
 
-        <canvas
-          ref="canvasElement"
-          class="absolute inset-0 w-full h-full object-cover z-10 mirror"
-        ></canvas>
+      <canvas
+        ref="canvasElement"
+        class="absolute inset-0 w-full h-full object-cover z-10 mirror"
+      ></canvas>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          class="absolute inset-0 m-auto size-16 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm z-20"
-          @click="toggleRunning"
-        >
-          <Play v-if="!isRunningRef" class="size-8" />
-          <Pause v-else class="size-8" />
-        </Button>
-      </CardContent>
-    </Card>
+      <Button
+        variant="ghost"
+        size="icon"
+        class="absolute inset-0 m-auto size-16 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm z-20"
+        @click="toggleRunning"
+      >
+        <Play v-if="!isRunningRef" class="size-8" />
+        <Pause v-else class="size-8" />
+      </Button>
+    </CardContent>
+  </Card>
 </template>
 
 <style scoped>
