@@ -17,7 +17,7 @@ watch(
       saveSettings(newSettings);
     }, 500); // Debounce saves by 500ms
   },
-  { deep: true }
+  { deep: true },
 );
 
 /**

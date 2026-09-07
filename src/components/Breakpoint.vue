@@ -165,15 +165,8 @@ onUnmounted(() => {
       <div class="flex justify-between items-center">
         <CardTitle>Breakpoints</CardTitle>
         <div class="flex items-center gap-3">
-          <Switch
-            v-model:checked="allEnabled"
-          />
-          <Button
-            @click="addBreakpoint"
-            variant="outline"
-            size="sm"
-            class="text-xs"
-          >
+          <Switch v-model:model-value="allEnabled" />
+          <Button @click="addBreakpoint" variant="outline" size="sm" class="text-xs">
             + Add New
           </Button>
         </div>

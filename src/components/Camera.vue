@@ -1,40 +1,51 @@
 <script setup lang="ts">
 import type { FaceLandmarker } from "@mediapipe/tasks-vision";
-import { onMounted, onUnmounted, ref, reactive } from "vue";
+import { onMounted, onUnmounted, ref, computed, useTemplateRef, watch } from "vue";
+import { Play, Pause } from "@lucide/vue";
 import { hideOverlay, showOverlay } from "../common/api.js";
 import { resizeCanvas } from "../common/utils.js";
 import { drawLandmark, setupLandmarker } from "../landmark.js";
 import { defaultSettings as settings } from "../settings.js";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import CameraStatusBadge from "./CameraStatusBadge.vue";
-import DeviceSelector from "./DeviceSelector.vue";
-import CameraControlPanel from "./CameraControlPanel.vue";
 
-const state = reactive({ isBreak: false });
+const props = defineProps<{
+  selectedDeviceId: string;
+}>();
 
-const isRunning = ref<boolean>(false);
-
-const timeoutId = ref<number | undefined>(undefined);
-const isEyesCloseRef = ref<boolean>(false);
-
-const blinkCount = ref<number>(0);
-
-const devices = ref<MediaDeviceInfo[]>([]);
-const selectedDeviceId = ref<string>("");
+const isBreakRef = ref(false);
+const isRunningRef = ref(false);
+const blinkCountRef = ref(0);
+const isEyesCloseRef = ref(false);
+const timeoutIdRef = ref<number | undefined>(undefined);
+const videoElementRef = useTemplateRef("videoElement");
+const canvasElementRef = useTemplateRef("canvasElement");
+const canvasContextCompt = computed(() => canvasElementRef.value?.getContext("2d"));
 
 let lastVideoTime = -1;
-
-const videoElement = ref<HTMLVideoElement | null>(null);
-const canvasElement = ref<HTMLCanvasElement | null>(null);
-const gpuCanvasElement = ref<HTMLCanvasElement | null>(null);
 let requestAnimationFrameId: number | undefined;
 let faceLandmarker: FaceLandmarker | undefined;
-let autoStarted = false;
+
+watch(
+  () => props.selectedDeviceId,
+  async (newID) => {
+    console.log("CHANGED HAHA", newID);
+    if (newID && settings.autoStartSession && !isRunningRef.value) {
+      try {
+        await startCamera(newID);
+        startSession();
+      } catch (e) {
+        console.error("Auto-start failed:", e);
+      }
+    }
+  },
+);
 
 function stopSession() {
   hideOverlay();
   removeTimeout();
-  isRunning.value = false;
+  isRunningRef.value = false;
 }
 
 function startSession() {
@@ -42,11 +53,11 @@ function startSession() {
 }
 
 function toggleRunning() {
-  if (isRunning.value) {
+  if (isRunningRef.value) {
     stopSession();
     stopCamera();
   } else {
-    startCamera();
+    startCamera(props.selectedDeviceId);
     startSession();
   }
 }
@@ -57,7 +68,7 @@ function handleEyesClose() {
     incrementBlinkCounter();
   }
 
-  if (!isRunning.value || state.isBreak) return;
+  if (!isRunningRef.value || isBreakRef.value) return;
 
   hideOverlay();
   removeTimeout();
@@ -67,41 +78,43 @@ function handleEyesOpen() {
   if (isEyesCloseRef.value) {
     isEyesCloseRef.value = false;
 
-    if (!isRunning.value || state.isBreak) return;
+    if (!isRunningRef.value || isBreakRef.value) return;
 
     resetTimeout(showOverlay);
   }
 }
 
 function removeTimeout() {
-  clearTimeout(timeoutId.value);
+  clearTimeout(timeoutIdRef.value);
 }
 
 function resetTimeout(callback: () => void) {
-  clearTimeout(timeoutId.value);
-  timeoutId.value = setTimeout(callback, settings.blinkTimeout * 1000);
+  clearTimeout(timeoutIdRef.value);
+  timeoutIdRef.value = setTimeout(callback, settings.blinkTimeout * 1000);
 }
 
 function incrementBlinkCounter() {
-  blinkCount.value++;
+  blinkCountRef.value++;
 }
 
 function predictWebcam() {
-  const canvas = canvasElement.value;
-  const ctx = canvas?.getContext("2d");
+  const canvas = canvasElementRef.value;
+  const ctx = canvasContextCompt.value;
+
   (() => {
     if (
       !canvas ||
       !ctx ||
       !faceLandmarker ||
-      !videoElement.value ||
-      lastVideoTime === videoElement.value.currentTime
+      !videoElementRef.value ||
+      lastVideoTime === videoElementRef.value.currentTime
     )
       return;
-    resizeCanvas(canvas, videoElement.value.videoWidth, videoElement.value.videoHeight);
 
-    lastVideoTime = videoElement.value.currentTime;
-    const results = faceLandmarker.detectForVideo(videoElement.value, performance.now());
+    resizeCanvas(canvas, videoElementRef.value.videoWidth, videoElementRef.value.videoHeight);
+
+    lastVideoTime = videoElementRef.value.currentTime;
+    const results = faceLandmarker.detectForVideo(videoElementRef.value, performance.now());
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -131,82 +144,54 @@ function predictWebcam() {
   requestAnimationFrameId = requestAnimationFrame(predictWebcam);
 }
 
-// 2. Start Camera
-async function startCamera() {
-  const stream = await navigator.mediaDevices
+async function startCamera(deviceId: string) {
+  const stream = (await navigator.mediaDevices
     .getUserMedia({
       video: {
-        deviceId: selectedDeviceId.value ? { exact: selectedDeviceId.value } : undefined,
+        deviceId,
       },
     })
-    .catch((err) => err);
+    .catch((err) => err)) as MediaStream | Error;
 
   if (stream instanceof Error) {
     console.error(stream);
     return;
   }
 
-  if (!videoElement.value) throw new Error("video element is undefined");
+  if (!videoElementRef.value) throw new Error("video element is undefined");
 
-  isRunning.value = true;
-  videoElement.value.srcObject = stream;
-  videoElement.value.addEventListener("loadeddata", predictWebcam);
-  // active.value = true;
+  isRunningRef.value = true;
+  videoElementRef.value.srcObject = stream;
+  videoElementRef.value.addEventListener("loadeddata", predictWebcam);
 }
 
 function stopCamera() {
-  if (!videoElement.value) return;
+  if (!videoElementRef.value) return;
 
-  const stream = videoElement.value.srcObject as MediaStream;
+  const stream = videoElementRef.value.srcObject as MediaStream | null;
 
   if (!stream) return;
 
   stream.getTracks().forEach((track) => track.stop());
-  videoElement.value.srcObject = null;
-}
-
-async function getCameras() {
-  const allDevices = await navigator.mediaDevices.enumerateDevices();
-
-  devices.value = allDevices.filter((device) => device.kind === "videoinput");
-
-  if (devices.value.length > 0) {
-    selectedDeviceId.value = devices.value[0].deviceId;
-  }
-}
-
-function handleCameraChange() {
-  stopCamera();
-  startCamera();
+  videoElementRef.value.srcObject = null;
 }
 
 onMounted(async () => {
-  const video = videoElement.value;
-  const canvas = canvasElement.value;
-  const gpuCanvas = gpuCanvasElement.value;
+  const video = videoElementRef.value;
+  const canvas = canvasElementRef.value;
 
-  if (!video || !canvas || !gpuCanvas) {
+  if (!video || !canvas) {
     throw new Error("canvas or video element was not found");
   }
-  await getCameras();
-  faceLandmarker = await setupLandmarker(gpuCanvas);
-  // await startCamera();
+
+  const offscreenCanvas = document.createElement("canvas");
+  faceLandmarker = await setupLandmarker(offscreenCanvas);
 
   video?.addEventListener("loadeddata", predictWebcam);
-
-  if (!autoStarted && settings.autoStartSession && !isRunning.value) {
-    autoStarted = true;
-    try {
-      await startCamera();
-      startSession();
-    } catch (e) {
-      console.error("Auto-start failed:", e);
-    }
-  }
 });
 
 onUnmounted(async () => {
-  const video = videoElement.value;
+  const video = videoElementRef.value;
 
   video?.removeEventListener("loadeddata", predictWebcam);
   faceLandmarker?.close();
@@ -216,39 +201,45 @@ onUnmounted(async () => {
   }
 });
 </script>
+
 <template>
-  <div class="lg:col-span-8 space-y-6">
-    <Card class="aspect-video relative">
-      <CardHeader>
-        <CameraStatusBadge :is-active="isRunning" />
-      </CardHeader>
-      <CardContent>
-        <div class="text-muted-foreground text-center">
-          <div class="text-6xl mb-4">🎭</div>
-          <p class="text-sm tracking-widest uppercase">Video Feed Canvas</p>
+  <Card class="aspect-video relative">
+    <CardHeader>
+      <div class="flex justify-between items-center">
+        <CameraStatusBadge :is-active="isRunningRef" />
+        <div class="text-right">
+          <p class="text-muted-foreground text-xs uppercase tracking-[0.2em] font-bold mb-1">
+            Total Blinks Detected
+          </p>
+          <p class="text-2xl font-black text-foreground tabular-nums">{{ blinkCountRef }}</p>
         </div>
+      </div>
+    </CardHeader>
+    <CardContent>
+      <video
+        ref="videoElement"
+        class="absolute inset-0 w-full h-full object-cover invisible"
+        autoplay
+        muted
+        playsinline
+      ></video>
 
-        <video ref="videoElement" class="absolute inset-0 w-full h-full object-cover invisible" autoplay muted
-          playsinline></video>
+      <canvas
+        ref="canvasElement"
+        class="absolute inset-0 w-full h-full object-cover z-10 mirror"
+      ></canvas>
 
-        <canvas ref="gpuCanvasElement" class="absolute inset-0 w-full h-full object-cover z-10 mirror"></canvas>
-
-        <canvas ref="canvasElement" class="absolute inset-0 w-full h-full object-cover z-10 mirror"></canvas>
-      </CardContent>
-    </Card>
-
-    <Card>
-      <CardHeader>
-        <CardTitle>Device Settings</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <DeviceSelector v-model="selectedDeviceId" :devices="devices" @change="handleCameraChange" />
-      </CardContent>
-    </Card>
-
-    <CameraControlPanel :blink-count="blinkCount" :is-session-active="isRunning"
-      @toggle-session="toggleRunning" />
-  </div>
+      <Button
+        variant="ghost"
+        size="icon"
+        class="absolute inset-0 m-auto size-16 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm z-20"
+        @click="toggleRunning"
+      >
+        <Play v-if="!isRunningRef" class="size-8" />
+        <Pause v-else class="size-8" />
+      </Button>
+    </CardContent>
+  </Card>
 </template>
 
 <style scoped>

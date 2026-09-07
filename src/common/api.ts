@@ -10,12 +10,20 @@ export function getStore() {
   return new LazyStore("settings.json");
 }
 
+let _overlayWindow: WebviewWindow | null = null;
+
 async function getOverlayWindow() {
+  if (_overlayWindow) {
+    return _overlayWindow;
+  }
+
   const window = await WebviewWindow.getByLabel(OVERLAY_WINDOW_LABEL);
 
   if (!window) {
     console.error(`failed to get window with label: ${OVERLAY_WINDOW_LABEL}`);
   }
+
+  _overlayWindow = window;
 
   return window;
 }

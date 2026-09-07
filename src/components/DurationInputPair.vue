@@ -39,7 +39,9 @@ const unitOptions = ["second", "minute"] as const;
       />
       <select
         :value="unit"
-        @change="(e) => emit('update:unit', (e.target as HTMLSelectElement).value as 'second' | 'minute')"
+        @change="
+          (e) => emit('update:unit', (e.target as HTMLSelectElement).value as 'second' | 'minute')
+        "
         class="bg-background border-border rounded-r-xl px-2 py-2 text-xs font-semibold text-foreground outline-none cursor-pointer border-l-0"
       >
         <option v-for="opt in unitOptions" :key="opt" :value="opt">
