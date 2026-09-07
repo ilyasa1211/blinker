@@ -19,7 +19,6 @@ const devicesRef = ref<MediaDeviceInfo[]>([]);
 const selectedValue = ref<string>("");
 
 const handleValueChange = (value: any) => {
-  console.log("SHSSSOULD WORK: ", value)
   if (value !== null && value !== undefined) {
     const stringValue = String(value);
     selectedValue.value = stringValue;

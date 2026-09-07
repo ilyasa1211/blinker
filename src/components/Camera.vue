@@ -21,7 +21,6 @@ const isEyesCloseRef = ref(false);
 const timeoutIdRef = ref<number | undefined>(undefined);
 const videoElementRef = useTemplateRef("videoElement");
 const canvasElementRef = useTemplateRef("canvasElement");
-const gpuCanvasElementRef = useTemplateRef("gpuCanvasElement");
 const canvasContextCompt = computed(() => canvasElementRef.value?.getContext("2d"));
 
 let lastVideoTime = -1;
@@ -177,13 +176,13 @@ function stopCamera() {
 onMounted(async () => {
   const video = videoElementRef.value;
   const canvas = canvasElementRef.value;
-  const gpuCanvas = gpuCanvasElementRef.value;
 
-  if (!video || !canvas || !gpuCanvas) {
+  if (!video || !canvas) {
     throw new Error("canvas or video element was not found");
   }
 
-  faceLandmarker = await setupLandmarker(gpuCanvas);
+  const offscreenCanvas = document.createElement("canvas");
+  faceLandmarker = await setupLandmarker(offscreenCanvas);
 
   video?.addEventListener("loadeddata", predictWebcam);
 });
@@ -221,11 +220,6 @@ onUnmounted(async () => {
           muted
           playsinline
         ></video>
-
-        <canvas
-          ref="gpuCanvasElement"
-          class="absolute inset-0 w-full h-full object-cover z-10 mirror"
-        ></canvas>
 
         <canvas
           ref="canvasElement"
