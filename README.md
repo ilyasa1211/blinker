@@ -1,5 +1,7 @@
 # Blinker
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/up9t99)
+
 <p align="center">
   <img width="128" height="128" alt="icon" src="./icon.svg" />
 </p>
@@ -12,7 +14,7 @@ Too focused doing your job and forget to blink? that's bad for your eyes, fortun
 
 ## Screenshot
 
-![screenshot 1](./docs/images/main.png)
+![screenshot 1](./docs/images/screenshot1.png)
 ![screenshot 2](./docs/images/breakpoint.png)
 
 ## Features
@@ -26,50 +28,46 @@ Too focused doing your job and forget to blink? that's bad for your eyes, fortun
 
 ## Todo 
 
-- Fix full white box in the camera selection element and other.
-- Use UI library like Shadcn/Radix for easy customize and mantain.
 - If the user doesn’t have camera, it should have another method for reminding the user to blink, such as interval timer
 
 ## Downloads
 
-### Binary (tar.xz) (soon)
+Downloads are available in AppImage, RPM/DEB, Flatpak and even Tarball. 
 
-### AppImage (soon)
+- [Go to download page](https://github.com/up9t/blinker/releases)
 
-### RPM/DEB package (soon)
-
-- [flatpak](https://github.com/up9t/blinker/releases/latest/download/blinker.flatpak)
-
-## Project Setup
+## Development
 
 ### Install dependencies
 
-Install Rust & Cargo
-Install Node & Npm
+- Install Rust & Cargo
 
-Install Node dependencie:
+- Install Node & Npm
+
+- Install Node dependencies:
+
+    ```bash
+    $ npm ci
+    ```
+
+### Run dev server
 
 ```bash
-$ npm ci
-```
+npm run dev
 
-### Development
-
-```bash
-$ npm run dev
+# or
+npm run tauri dev
 ```
 
 ### Build
 
 ```bash 
-npm ci
 npm run tauri build
 ```
 
 Build binary only
 
 ```bash
-npm ci
 npm run tauri build -- --no-bundle
 ```
 
@@ -83,13 +81,13 @@ flatpak --user install ./repo org.blinker.Blinker -y
 flatpak run org.blinker.Blinker
 ```
 
-## Developer Note
+## Developer Notes
 
-To automatically build the icons from a specific file:
+- To automatically build the icons from a specific file:
 
-```bash
-npm run tauri icon icon.svg
-```
+    ```bash
+    npm run tauri icon icon.svg
+    ```
 
 ## FAQ
 
