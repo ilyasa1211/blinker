@@ -2,6 +2,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { HTMLAttributes } from "vue";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 interface Props {
   label: string;
@@ -17,12 +18,12 @@ const props = withDefaults(defineProps<Props>(), {
   step: 1,
 });
 
+const unitOptions = ["second", "minute"] as const;
+
 const emit = defineEmits<{
   (e: "update:value", payload: number): void;
-  (e: "update:unit", payload: "second" | "minute"): void;
+  (e: "update:unit", payload: (typeof unitOptions)[number]): void;
 }>();
-
-const unitOptions = ["second", "minute"] as const;
 </script>
 
 <template>
@@ -35,19 +36,22 @@ const unitOptions = ["second", "minute"] as const;
         @update:model-value="(val) => emit('update:value', Number(val))"
         :min="minValue"
         :step="step"
-        class="flex-1 rounded-r-none"
+        class="flex-1 rounded-r-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
       />
-      <select
-        :value="unit"
-        @change="
-          (e) => emit('update:unit', (e.target as HTMLSelectElement).value as 'second' | 'minute')
-        "
-        class="bg-background border-border rounded-r-xl px-2 py-2 text-xs font-semibold text-foreground outline-none cursor-pointer border-l-0"
+
+      <Select
+        :default-value="unit"
+        @update:model-value="(value) => emit('update:unit', value as (typeof unitOptions)[number])"
       >
-        <option v-for="opt in unitOptions" :key="opt" :value="opt">
-          {{ opt === "second" ? "Sec" : "Min" }}
-        </option>
-      </select>
+        <SelectTrigger>
+          <SelectValue placeholder="Sec" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem v-for="opt in unitOptions" :key="opt" :value="opt">
+            {{ opt === "second" ? "Sec" : "Min" }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
     </div>
   </div>
 </template>

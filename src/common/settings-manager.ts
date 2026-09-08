@@ -9,7 +9,7 @@ export interface Settings {
   notifyBeforeSecond: number;
   breakpoints: Breakpoint[];
   theme: Theme;
-  autoStartSession: boolean;
+  autoStart: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -28,7 +28,7 @@ export const DEFAULT_SETTINGS: Settings = {
     },
   ],
   theme: "system",
-  autoStartSession: false,
+  autoStart: false,
 };
 
 const STORE_KEY = "settings";

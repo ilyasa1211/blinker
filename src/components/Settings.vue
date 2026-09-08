@@ -159,7 +159,7 @@ async function handleReset() {
         </div>
 
         <label class="flex items-center gap-2 cursor-pointer select-none">
-          <Checkbox v-model:model-value="settings.autoStartSession" />
+          <Checkbox v-model:model-value="settings.autoStart" />
           <span class="text-xs text-muted-foreground">Auto-start session on launch</span>
         </label>
       </div>
