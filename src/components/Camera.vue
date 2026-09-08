@@ -3,7 +3,7 @@ import type { FaceLandmarker } from "@mediapipe/tasks-vision";
 import { onMounted, onUnmounted, ref, computed, useTemplateRef, watch } from "vue";
 import { Play, Pause } from "@lucide/vue";
 import { hideOverlay, showOverlay } from "../common/api.js";
-import { resizeCanvas } from "../common/utils.js";
+import { clearCanvas, resizeCanvas } from "../common/utils.js";
 import { drawLandmark, setupLandmarker } from "../landmark.js";
 import { defaultSettings as settings } from "../settings.js";
 import { Button } from "@/components/ui/button";
@@ -26,15 +26,14 @@ const canvasContextCompt = computed(() => canvasElementRef.value?.getContext("2d
 let lastVideoTime = -1;
 let requestAnimationFrameId: number | undefined;
 let faceLandmarker: FaceLandmarker | undefined;
+let videoReady = false;
 
 watch(
   () => props.selectedDeviceId,
   async (newID) => {
-    console.log("CHANGED HAHA", newID);
-    if (newID && settings.autoStartSession && !isRunningRef.value) {
+    if (newID && settings.autoStart) {
       try {
-        await startCamera(newID);
-        startSession();
+        toggleRunning(true);
       } catch (e) {
         console.error("Auto-start failed:", e);
       }
@@ -42,24 +41,22 @@ watch(
   },
 );
 
-function stopSession() {
-  hideOverlay();
-  removeTimeout();
-  isRunningRef.value = false;
-}
-
-function startSession() {
-  resetTimeout(showOverlay);
-}
-
-function toggleRunning() {
-  if (isRunningRef.value) {
-    stopSession();
-    stopCamera();
+function toggleRunning(value: boolean | undefined = undefined) {
+  if (typeof value === "undefined") {
+    isRunningRef.value = !isRunningRef.value;
   } else {
-    startCamera(props.selectedDeviceId);
-    startSession();
+    isRunningRef.value = value;
   }
+
+  if (isRunningRef.value) {
+    startCamera(props.selectedDeviceId);
+  } else {
+    stopCamera();
+  }
+}
+
+function setVideoReady(value: boolean = true) {
+  videoReady = value;
 }
 
 function handleEyesClose() {
@@ -101,26 +98,30 @@ function predictWebcam() {
   const canvas = canvasElementRef.value;
   const ctx = canvasContextCompt.value;
 
+  if (!isRunningRef.value) {
+    if (ctx) clearCanvas(ctx);
+    if (typeof requestAnimationFrameId !== "undefined") {
+      cancelAnimationFrame(requestAnimationFrameId);
+    }
+    return;
+  }
+
   (() => {
     if (
       !canvas ||
       !ctx ||
       !faceLandmarker ||
       !videoElementRef.value ||
+      !videoReady ||
       lastVideoTime === videoElementRef.value.currentTime
     )
       return;
 
     resizeCanvas(canvas, videoElementRef.value.videoWidth, videoElementRef.value.videoHeight);
+    clearCanvas(ctx);
 
     lastVideoTime = videoElementRef.value.currentTime;
     const results = faceLandmarker.detectForVideo(videoElementRef.value, performance.now());
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    if (results) {
-      drawLandmark(results, ctx);
-    }
 
     if (results.faceBlendshapes && results.faceBlendshapes.length > 0) {
       const blinkEyes = results.faceBlendshapes
@@ -137,6 +138,10 @@ function predictWebcam() {
       // is eye's opening
       if (blinkEyes?.every((blinkEye) => blinkEye.score <= settings.thresholdEyesOpened)) {
         handleEyesOpen();
+      }
+
+      if (results) {
+        drawLandmark(results, ctx);
       }
     }
   })();
@@ -160,20 +165,33 @@ async function startCamera(deviceId: string) {
 
   if (!videoElementRef.value) throw new Error("video element is undefined");
 
-  isRunningRef.value = true;
   videoElementRef.value.srcObject = stream;
-  videoElementRef.value.addEventListener("loadeddata", predictWebcam);
+
+  requestAnimationFrameId = requestAnimationFrame(predictWebcam);
+  resetTimeout(showOverlay);
 }
 
 function stopCamera() {
-  if (!videoElementRef.value) return;
+  (() => {
+    if (!videoElementRef.value) return;
 
-  const stream = videoElementRef.value.srcObject as MediaStream | null;
+    const stream = videoElementRef.value.srcObject as MediaStream | null;
 
-  if (!stream) return;
+    if (!stream) return;
 
-  stream.getTracks().forEach((track) => track.stop());
-  videoElementRef.value.srcObject = null;
+    stream.getTracks().forEach((track) => track.stop());
+    videoElementRef.value.srcObject = null;
+  })();
+
+  setVideoReady(false);
+
+  hideOverlay();
+  removeTimeout();
+}
+
+function onVideoLoaded() {
+  console.log("video loaded, set ready to true");
+  setVideoReady(true);
 }
 
 onMounted(async () => {
@@ -187,18 +205,18 @@ onMounted(async () => {
   const offscreenCanvas = document.createElement("canvas");
   faceLandmarker = await setupLandmarker(offscreenCanvas);
 
-  video?.addEventListener("loadeddata", predictWebcam);
+  video.addEventListener("loadeddata", onVideoLoaded);
 });
 
 onUnmounted(async () => {
-  const video = videoElementRef.value;
-
-  video?.removeEventListener("loadeddata", predictWebcam);
   faceLandmarker?.close();
 
   if (typeof requestAnimationFrameId !== "undefined") {
     cancelAnimationFrame(requestAnimationFrameId);
   }
+
+  const video = videoElementRef.value;
+  video?.removeEventListener("loadeddata", onVideoLoaded);
 });
 </script>
 
@@ -233,7 +251,7 @@ onUnmounted(async () => {
         variant="ghost"
         size="icon"
         class="absolute inset-0 m-auto size-16 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm z-20"
-        @click="toggleRunning"
+        @click="() => toggleRunning()"
       >
         <Play v-if="!isRunningRef" class="size-8" />
         <Pause v-else class="size-8" />

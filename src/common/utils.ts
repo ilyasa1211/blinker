@@ -2,6 +2,9 @@ export function resizeCanvas(canvas: HTMLCanvasElement, width: number, height: n
   canvas.width = width;
   canvas.height = height;
 }
+export function clearCanvas(ctx: CanvasRenderingContext2D) {
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+}
 
 export function getRandomId() {
   return Math.random().toString();
